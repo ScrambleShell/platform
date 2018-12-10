@@ -68,7 +68,7 @@ class BuilderCard extends PureComponent<Props> {
 
     return (
       <>
-        <div className="builder-card--items">
+        <div className="builder-card--items" data-testid="builder-card--items">
           {items.length ? (
             <FancyScrollbar>
               {items.map(item => (

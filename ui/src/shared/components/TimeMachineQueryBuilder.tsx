@@ -63,7 +63,7 @@ interface State {
   functionsSelection: string[]
 }
 
-class TimeMachineQueryBuilder extends PureComponent<Props, State> {
+export class TimeMachineQueryBuilder extends PureComponent<Props, State> {
   public state: State = {
     buckets: [],
     bucketsStatus: RemoteDataState.Loading,
