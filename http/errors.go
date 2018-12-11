@@ -153,6 +153,7 @@ func encodeKError(e kerrors.Error, w http.ResponseWriter) {
 
 	w.Header().Set(ErrorHeader, e.Err)
 	w.Header().Set(ReferenceHeader, strconv.Itoa(e.Reference))
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
 }
 

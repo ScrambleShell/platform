@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"sort"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -655,7 +656,26 @@ func jsonEqual(s1, s2 string) (eq bool, err error) {
 		return
 	}
 
-	return cmp.Equal(o1, o2), nil
+	// make sure that all arrays are sorted.
+	xform := cmp.Transformer("jsonEqualArraySort", func(in []interface{}) []interface{} {
+		out := append([]interface{}(nil), in...) // Copy input to avoid mutating it
+		sort.Slice(out, func(i, j int) bool {
+			ei, _ := json.Marshal(out[i])
+			ej, _ := json.Marshal(out[j])
+			return string(ei) > string(ej)
+		})
+		return out
+	})
+	return cmp.Equal(o1, o2, xform), nil
+}
+
+func TestJSONArrayEqual(t *testing.T) {
+	s1 := `{"links":{"self":"/api/v2/users"},"users":[{"links":{"log":"/api/v2/users/0000000000000069/log","self":"/api/v2/users/0000000000000069"},"id":"0000000000000069","name":"user2"},{"links":{"log":"/api/v2/users/0000000000000065/log","self":"/api/v2/users/0000000000000065"},"id":"0000000000000065","name":"user1"}]}`
+	s2 := `{"links":{"self":"/api/v2/users"},"users":[{"id":"0000000000000065","links":{"log":"/api/v2/users/0000000000000065/log","self":"/api/v2/users/0000000000000065"},"name":"user1"},{"id":"0000000000000069","links":{"log":"/api/v2/users/0000000000000069/log","self":"/api/v2/users/0000000000000069"},"name":"user2"}]}`
+	eq, _ := jsonEqual(s1, s2)
+	if !eq {
+		t.Errorf("JSON with different array ordered considered different")
+	}
 }
 
 /* TODO: Add a go view service client

@@ -8,6 +8,7 @@ paths:
   /signin:
     post:
       summary: Exchange basic auth credentials for session
+      operationId: postSignin
       security:
         - basicAuth: []
       parameters:
@@ -24,6 +25,7 @@ paths:
   /signout:
     post:
       summary: Expire the current session
+      operationId: postSignout
       parameters:
         - $ref: '#/components/parameters/TraceSpan'
       responses:
@@ -40,15 +42,18 @@ paths:
       summary: Map of all top level routes available
       parameters:
         - $ref: '#/components/parameters/TraceSpan'
+      operationId: getRoutes
       responses:
         default:
           description: All routes
           content:
             application/json:
+              example: {"authorizations":"/api/v2/authorizations","buckets":"/api/v2/buckets","dashboards":"/api/v2/dashboards","external":{"statusFeed":"https://www.influxdata.com/feed/json"},"macros":"/api/v2/macros","me":"/api/v2/me","orgs":"/api/v2/orgs","query":{"ast":"/api/v2/query/ast","plan":"/api/v2/query/plan","self":"/api/v2/query","spec":"/api/v2/query/spec","suggestions":"/api/v2/query/suggestions"},"setup":"/api/v2/setup","signin":"/api/v2/signin","signout":"/api/v2/signout","sources":"/api/v2/sources","system":{"debug":"/debug/pprof","health":"/health","metrics":"/metrics"},"tasks":"/api/v2/tasks","telegrafs":"/api/v2/telegrafs","users":"/api/v2/users","views":"/api/v2/views","write":"/api/v2/write"}
               schema:
                 $ref: "#/components/schemas/Routes"
   /setup:
     get:
+      operationId: setupGet
       tags:
         - Setup
       summary: check if database has default user, org, bucket created, returns true if not.
@@ -60,9 +65,11 @@ paths:
             allowed true or false
           content:
             application/json:
+              example: {"allowed":true}
               schema:
                 $ref: "#/components/schemas/IsOnboarding"
     post:
+      operationId: setupPost
       tags:
         - Setup
       summary: post onboarding request, to setup initial user, org and bucket
@@ -73,6 +80,7 @@ paths:
         required: true
         content:
           application/json:
+            example: {"username":"user1", "password":"hunter2", "org":"org1", "bucket":"bucket1"}
             schema:
               $ref: "#/components/schemas/OnboardingRequest"
       responses:
@@ -80,12 +88,16 @@ paths:
           description: Created default user, bucket, org
           content:
             application/json:
+              example: {"user":{"links":{"log":"/api/v2/users/0000000000000065/log","self":"/api/v2/users/0000000000000065"},"id":"0000000000000065","name":"user1"},"bucket":{"links":{"log":"/api/v2/buckets/0000000000000067/log","org":"/api/v2/orgs/0000000000000066","self":"/api/v2/buckets/0000000000000067"},"id":"0000000000000067","organizationID":"0000000000000066","organization":"org1","name":"bucket1","retentionRules":[]},"org":{"links":{"buckets":"/api/v2/buckets?org=org1","dashboards":"/api/v2/dashboards?org=org1","log":"/api/v2/orgs/0000000000000066/log","members":"/api/v2/orgs/0000000000000066/members","self":"/api/v2/orgs/0000000000000066","tasks":"/api/v2/tasks?org=org1"},"id":"0000000000000066","name":"org1"},"auth":{"links":{"self":"/api/v2/authorizations/0000000000000068","user":"/api/v2/users/0000000000000065"},"id":"0000000000000068","token":"secret","status":"active","description":"user1's Token","user":"user1","userID":"0000000000000065","permissions":[{"action":"create","resource":"user"},{"action":"delete","resource":"user"},{"action":"write","resource":"org"},{"action":"write","resource":"bucket/0000000000000067"}]}}
               schema:
                 $ref: "#/components/schemas/OnboardingResponse"
   /telegrafs:
     get:
       tags:
         - Telegrafs
+      summary: return all remote telegraf configurations for a specific organization
+      operationId: telegrafsGet
+      x-precondition-operations: [setupPost, telegrafsPost]
       parameters:
           - $ref: '#/components/parameters/TraceSpan'
           - in: query
@@ -99,6 +111,7 @@ paths:
           description: a list of telegraf configs
           content:
             application/json:
+              example: {"configurations":[{"id":"0000000000000069","name":"my cpu config","agent":{"collectionInterval":1000},"plugins":[{"name":"cpu","type":"input","comment":"collect my cpu metrics","config":{}},{"name":"influxdb_v2","type":"output","comment":"my influx destination","config":{"urls":["http://127.0.0.1:9999"],"token":"secret","organization":"org1","bucket":"bucket1"}}]}]}
               schema:
                 $ref: "#/components/schemas/Telegrafs"
         default:
@@ -110,13 +123,16 @@ paths:
     post:
       tags:
         - Telegrafs
-      summary: Create a telegraf config
+      summary: Create a remote telegraf config
+      operationId: telegrafsPost
+      x-precondition-operations: [setupPost]
       parameters:
           - $ref: '#/components/parameters/TraceSpan'
           - in: query
             name: org
             description: specifies the organization of the resource
             required: true
+            example: "org1"
             schema:
               type: string
       requestBody:
@@ -124,6 +140,7 @@ paths:
         required: true
         content:
           application/json:
+            example: {"name":"my cpu config", "agent":{"collectionInterval":1000}, "plugins":[{"name":"cpu", "type":"input", "comment":"collect my cpu metrics", "config":{}},{"name":"influxdb_v2", "type":"output", "comment":"my influx destination", "config":{"urls":["http://127.0.0.1:9999"], "token":"secret", "organization":"org1","bucket":"bucket1"}}]}
             schema:
               $ref: "#/components/schemas/TelegrafRequest"
       responses:
@@ -131,6 +148,7 @@ paths:
           description: Telegraf config created
           content:
             application/json:
+              example: {"id":"0000000000000069","name":"my cpu config","agent":{"collectionInterval":1000},"plugins":[{"name":"cpu","type":"input","comment":"collect my cpu metrics","config":{}},{"name":"influxdb_v2","type":"output","comment":"my influx destination","config":{"urls":["http://127.0.0.1:9999"],"token":"secret","organization":"org1","bucket":"bucket1"}}]}
               schema:
                 $ref: "#/components/schemas/Telegraf"
         default:
@@ -144,6 +162,8 @@ paths:
       tags:
         - Telegrafs
       summary: Retrieve a telegraf config
+      operationId: telegrafGet
+      x-precondition-operations: [setupPost,telegrafsPost]
       parameters:
         - $ref: '#/components/parameters/TraceSpan'
         - in: path
@@ -177,6 +197,8 @@ paths:
       tags:
         - Telegrafs
       summary: Update a telegraf config
+      operationId: telegrafPut
+      x-precondition-operations: [setupPost,telegrafsPost]
       parameters:
         - $ref: '#/components/parameters/TraceSpan'
         - in: path
@@ -210,6 +232,7 @@ paths:
       tags:
         - Telegrafs
       summary: list all labels for a telegraf config
+      operationId: telegrafLabelsGet
       parameters:
         - $ref: '#/components/parameters/TraceSpan'
         - in: path
@@ -240,6 +263,7 @@ paths:
       tags:
         - Telegrafs
       summary: add a label to a telegraf config
+      operationId: telegrafLabelsPost
       parameters:
         - $ref: '#/components/parameters/TraceSpan'
         - in: path
@@ -281,6 +305,7 @@ paths:
       tags:
         - Telegrafs
       summary: delete a label from a telegraf config
+      operationId: telegrafLabelGet
       parameters:
         - $ref: '#/components/parameters/TraceSpan'
         - in: path
@@ -314,6 +339,7 @@ paths:
       tags:
         - Telegrafs
       summary: update a label from a telegraf config
+      operationId: telegrafLabelPatch
       parameters:
         - $ref: '#/components/parameters/TraceSpan'
         - in: path
@@ -356,6 +382,7 @@ paths:
         - Users
         - Telegrafs
       summary: List all users with member privileges for a telegraf config
+      operationId: telegrafMembersGet
       parameters:
         - $ref: '#/components/parameters/TraceSpan'
         - in: path
@@ -382,6 +409,7 @@ paths:
         - Users
         - Telegrafs
       summary: Add telegraf config member
+      operationId: telegrafMembersPost
       parameters:
         - $ref: '#/components/parameters/TraceSpan'
         - in: path
@@ -416,6 +444,7 @@ paths:
         - Users
         - Telegrafs
       summary: removes a member from a telegraf config
+      operationId: telegrafMemberDelete
       parameters:
         - $ref: '#/components/parameters/TraceSpan'
         - in: path
@@ -533,6 +562,8 @@ paths:
       tags:
         - Macros
       summary: get all macros
+      operationId: macrosGet
+      x-precondition-operations: [setupPost,macrosPost]
       parameters:
         - $ref: '#/components/parameters/TraceSpan'
         - in: query
@@ -546,6 +577,7 @@ paths:
           description: all macros for an organization
           content:
             application/json:
+              example: {"macros":[{"id":"0000000000000064","name":":ok:","selected":["hello"],"arguments":{"type":"constant","values":["howdy","hello"]},"links":{"self":"/api/v2/macros/0000000000000064"}}],"links":{"self":"/api/v2/macros"}}
               schema:
                 $ref: "#/components/schemas/Macros"
         '400':
@@ -566,11 +598,14 @@ paths:
         - Macros
       parameters:
         - $ref: '#/components/parameters/TraceSpan'
+      operationId: macrosPost
+      x-precondition-operations: [setupPost]
       requestBody:
         description: macro to create
         required: true
         content:
           application/json:
+            example: {"name":":ok:","selected":["hello"],"arguments":{"type":"constant","values":["howdy","hello"]}}
             schema:
               $ref: "#/components/schemas/Macro"
       responses:
@@ -578,6 +613,7 @@ paths:
           description: macro created
           content:
             application/json:
+              example: {"id":"0000000000000064","name":":ok:","selected":["hello"],"arguments":{"type":"constant","values":["howdy","hello"]},"links":{"self":"/api/v2/macros/0000000000000064"}}
               schema:
                 $ref: "#/components/schemas/Macro"
         default:
@@ -591,11 +627,14 @@ paths:
       tags:
         - Macros
       summary: delete a macro
+      operationId: macroDelete
+      x-precondition-operations: [setupPost,macrosPost]
       parameters:
         - $ref: '#/components/parameters/TraceSpan'
         - in: path
           name: macroID
           required: true
+          example: "0000000000000064"
           schema:
             type: string
           description: id of the macro
@@ -612,11 +651,14 @@ paths:
       summary: update a macro
       tags:
         - Macros
+      operationId: macroPatch
+      x-precondition-operations: [setupPost,macrosPost]
       parameters:
         - $ref: '#/components/parameters/TraceSpan'
         - in: path
           name: macroID
           required: true
+          example: "0000000000000064"
           schema:
             type: string
           description: id of the macro
@@ -653,10 +695,11 @@ paths:
             type: string
           description: id of the macro
       requestBody:
-        description: macro to replace
+        description: macro to update
         required: true
         content:
           application/json:
+            example: {"name":":newname:","selected":["howdy"]}
             schema:
               $ref: "#/components/schemas/Macro"
       responses:
@@ -664,6 +707,7 @@ paths:
           description: macro updated
           content:
             application/json:
+              example: {"id":"0000000000000064","name":":newname:","selected":["howdy"],"arguments":{"type":"constant","values":["howdy","hello"]},"links":{"self":"/api/v2/macros/0000000000000064"}}
               schema:
                 $ref: "#/components/schemas/Macro"
         default:
@@ -677,6 +721,8 @@ paths:
       tags:
         - Write
       summary: write time-series data into influxdb
+      operationId: write
+      x-precondition-operations: [setupPost]
       parameters:
         - $ref: '#/components/parameters/TraceSpan'
         - in: header
@@ -719,6 +765,7 @@ paths:
           name: org
           description: specifies the destination organization for writes
           required: true
+          example: "0000000000000066"
           schema:
             type: string
             description: all points within batch are written to this organization.
@@ -726,6 +773,7 @@ paths:
           name: bucket
           description: specifies the destination bucket for writes
           required: true
+          example: "0000000000000067"
           schema:
             type: string
             description: all points within batch are written to this bucket.
@@ -818,6 +866,9 @@ paths:
                 $ref: "#/components/schemas/Error"
   /health:
     get:
+      servers:
+        - url: /
+      operationId: healthGet
       tags:
         - Health
       summary: Get the health of an instance anytime during execution. Allow us to check if the instance is still healthy.
@@ -828,6 +879,7 @@ paths:
           description: the instance is healthy
           content:
             application/json:
+              example: {"message":"influxdb", "status":"healthy"}
               schema:
                 $ref: "#/components/schemas/Check"
         '503':
@@ -1046,6 +1098,8 @@ paths:
       tags:
         - Views
       summary: A view contains information about the visual representation of data
+      operationId: viewsPost
+      x-precondition-operations: [setupPost]
       parameters:
           - $ref: '#/components/parameters/TraceSpan'
           - in: query
@@ -1059,6 +1113,7 @@ paths:
           required: true
           content:
             application/json:
+              example: {"name":"my log view", "properties":{"shape":"chronograf-v2", "type":"log-viewer", "columns": [ { "name":"severity", "position":0, "settings": [ { "type":"label", "value":"icon" }, { "type":"label", "value":"text" }, { "type":"visibility", "value":"visible" }, { "type":"color", "name":"ruby", "value":"emergency" }, { "type":"color", "name":"rainforest", "value":"info" }, { "type":"displayName", "value":"Log Severity!" } ] }, { "name":"messages", "position":1, "settings": [ { "type":"visibility", "value":"hidden" } ] } ] } }
               schema:
                 $ref: "#/components/schemas/View"
       responses:
@@ -1066,6 +1121,7 @@ paths:
           description: Added view
           content:
             application/json:
+              example: {"id":"0000000000000069","name":"my log view","links":{"self":"/api/v2/views/0000000000000069"},"properties":{"shape":"chronograf-v2","type":"log-viewer","columns":[{"name":"severity","position":0,"settings":[{"type":"label","value":"icon"},{"type":"label","value":"text"},{"type":"visibility","value":"visible"},{"type":"color","value":"emergency","name":"ruby"},{"type":"color","value":"info","name":"rainforest"},{"type":"displayName","value":"Log Severity!"}]},{"name":"messages","position":1,"settings":[{"type":"visibility","value":"hidden"}]}]}}
               schema:
                 $ref: "#/components/schemas/View"
         default:
@@ -1078,6 +1134,8 @@ paths:
       tags:
         - Views
       summary: Get all views
+      operationId: viewsGet
+      x-precondition-operations: [setupPost, viewsPost]
       parameters:
           - $ref: '#/components/parameters/TraceSpan'
           - in: query
@@ -1089,6 +1147,7 @@ paths:
           - in: query
             name: type
             description: filters results to a specified type. Can be used multiple times in a request, to filter to multiple types.
+            example: "log-viewer"
             schema:
               type: string
               enum:
@@ -1104,6 +1163,7 @@ paths:
           description: all views
           content:
             application/json:
+              example: {"links":{"self":"/api/v2/views"},"views":[{"id":"0000000000000069","name":"my log view","links":{"self":"/api/v2/views/0000000000000069"},"properties":{"shape":"chronograf-v2","type":"log-viewer","columns":[{"name":"severity","position":0,"settings":[{"type":"label","value":"icon"},{"type":"label","value":"text"},{"type":"visibility","value":"visible"},{"type":"color","value":"emergency","name":"ruby"},{"type":"color","value":"info","name":"rainforest"},{"type":"displayName","value":"Log Severity!"}]},{"name":"messages","position":1,"settings":[{"type":"visibility","value":"hidden"}]}]}}]}
               schema:
                 $ref: "#/components/schemas/Views"
         default:
@@ -1117,12 +1177,15 @@ paths:
     tags:
       - Views
     summary: Get a single View
+    operationId: viewGet
+    x-precondition-operations: [setupPost, viewsPost]
     parameters:
         - $ref: '#/components/parameters/TraceSpan'
         - in: path
           name: viewID
           schema:
             type: string
+          example: "0000000000000069"
           required: true
           description: ID of view to update
     responses:
@@ -1130,6 +1193,7 @@ paths:
           description: get a single view
           content:
             application/json:
+              example: {"id":"0000000000000069","name":"my log view","links":{"self":"/api/v2/views/0000000000000069"},"properties":{"shape":"chronograf-v2","type":"log-viewer","columns":[{"name":"severity","position":0,"settings":[{"type":"label","value":"icon"},{"type":"label","value":"text"},{"type":"visibility","value":"visible"},{"type":"color","value":"emergency","name":"ruby"},{"type":"color","value":"info","name":"rainforest"},{"type":"displayName","value":"Log Severity!"}]},{"name":"messages","position":1,"settings":[{"type":"visibility","value":"hidden"}]}]}}
               schema:
                 $ref: "#/components/schemas/View"
         '404':
@@ -1148,11 +1212,14 @@ paths:
       tags:
         - Views
       summary: Update a single view
+      operationId: viewPatch
+      x-precondition-operations: [setupPost, viewsPost]
       requestBody:
           description: patching of a view
           required: true
           content:
             application/json:
+              example: {"name":"my log view","properties":{"shape":"chronograf-v2","type":"log-viewer","columns":[{"name":"severity","position":0,"settings":[{"type":"label","value":"icon"},{"type":"label","value":"text"},{"type":"visibility","value":"visible"},{"type":"color","value":"crisis","name":"ruby"},{"type":"color","value":"info","name":"rainforest"},{"type":"displayName","value":"Log Severity!"}]},{"name":"messages","position":1,"settings":[{"type":"visibility","value":"hidden"}]}]}}
               schema:
                 $ref: "#/components/schemas/View"
       parameters:
@@ -1161,6 +1228,7 @@ paths:
           name: viewID
           schema:
             type: string
+          example: "0000000000000069"
           required: true
           description: ID of view to update
       responses:
@@ -1168,6 +1236,7 @@ paths:
           description: Updated view
           content:
             application/json:
+              example: {"id":"0000000000000069","name":"my log view","links":{"self":"/api/v2/views/0000000000000069"},"properties":{"shape":"chronograf-v2","type":"log-viewer","columns":[{"name":"severity","position":0,"settings":[{"type":"label","value":"icon"},{"type":"label","value":"text"},{"type":"visibility","value":"visible"},{"type":"color","value":"crisis","name":"ruby"},{"type":"color","value":"info","name":"rainforest"},{"type":"displayName","value":"Log Severity!"}]},{"name":"messages","position":1,"settings":[{"type":"visibility","value":"hidden"}]}]}}
               schema:
                 $ref: "#/components/schemas/View"
         '404':
@@ -1186,6 +1255,8 @@ paths:
       tags:
         - Views
       summary: Delete a view
+      operationId: viewDelete
+      x-precondition-operations: [setupPost, viewsPost]
       parameters:
         - $ref: '#/components/parameters/TraceSpan'
         - in: path
@@ -1193,6 +1264,7 @@ paths:
           schema:
             type: string
           required: true
+          example: "0000000000000069"
           description: ID of view to update
       responses:
         '204':
@@ -1536,6 +1608,8 @@ paths:
     post:
       tags:
         - Dashboards
+      operationId: dashboardsPost
+      x-precondition-operations: [setupPost]
       summary: Create a dashboard
       parameters:
           - $ref: '#/components/parameters/TraceSpan'
@@ -1543,6 +1617,7 @@ paths:
             name: org
             description: specifies the organization of the resource
             required: true
+            example: "0000000000000064"
             schema:
               type: string
       requestBody:
@@ -1550,6 +1625,7 @@ paths:
           required: true
           content:
             application/json:
+              example: {"name":"my dashboard", "description":"trends over time", "cells":[{"name":"weather", "x":0, "y":0, "w": 2, "h": 1, "viewID":"0000000000000064"}]}
               schema:
                 $ref: "#/components/schemas/Dashboard"
       responses:
@@ -1558,6 +1634,7 @@ paths:
           content:
             application/json:
               schema:
+                example: {"links":{"self":"/api/v2/dashboards"},"dashboards":[{"id":"0000000000000064","name":"my dashboard","description":"trends over time","meta":{"createdAt":"1985-10-26T01:22:00-05:00","updatedAt":"1985-10-26T01:22:00-05:00"},"cells":[{"x":0,"y":0,"w":2,"h":1,"viewID":"0000000000000064","links":{"self":"/api/v2/dashboards/0000000000000064/cells/0000000000000064","view":"/api/v2/views/0000000000000064"}}],"links":{"self":"/api/v2/dashboards/0000000000000064","cells":"/api/v2/dashboards/0000000000000064/cells","log":"/api/v2/dashboards/0000000000000064/log","labels":"/api/v2/dashboards/0000000000000064/labels"}}]}
                 $ref: "#/components/schemas/Dashboard"
         default:
           description: unexpected error
@@ -1569,16 +1646,20 @@ paths:
       tags:
         - Dashboards
       summary: Get all dashboards
+      operationId: dashboardsGet
+      x-precondition-operations: [dashboardsPost]
       parameters:
           - $ref: '#/components/parameters/TraceSpan'
           - in: query
             name: owner
             description: specifies the owner id to return resources for
+            example: "0000000000000064"
             schema:
               type: string
           - in: query
             name: sortBy
             description: specifies the owner id to return resources for
+            example: "CreatedAt"
             schema:
               type: string
               enum:
@@ -1597,6 +1678,7 @@ paths:
           description: all dashboards
           content:
             application/json:
+              example: {"links":{"self":"/api/v2/dashboards"},"dashboards":[{"id":"0000000000000064","name":"my dashboard","description":"trends over time","meta":{"createdAt":"1985-10-26T01:22:00-05:00","updatedAt":"1985-10-26T01:22:00-05:00"},"cells":[{"x":0,"y":0,"w":2,"h":1,"viewID":"0000000000000064","links":{"self":"/api/v2/dashboards/0000000000000064/cells/0000000000000064","view":"/api/v2/views/0000000000000064"}}],"links":{"self":"/api/v2/dashboards/0000000000000064","cells":"/api/v2/dashboards/0000000000000064/cells","log":"/api/v2/dashboards/0000000000000064/log","labels":"/api/v2/dashboards/0000000000000064/labels"}}]}
               schema:
                 $ref: "#/components/schemas/Dashboards"
         default:
@@ -2187,6 +2269,7 @@ paths:
           description: Suggestions for next functions in call chain
           content:
             application/json:
+              example: {"funcs":[{"name":"_highestOrLowest","params":{"_sortLimit":"function","columns":"array","groupColumns":"array","n":"invalid","reducer":"function","tables":"object"}},{"name":"_sortLimit","params":{"columns":"array","desc":"bool","n":"int","tables":"object"}},{"name":"aggregateWindow","params":{"columns":"array","every":"duration","fn":"function","tables":"object","timeDst":"string","timeSrc":"string"}},{"name":"bool","params":{"v":"invalid"}},{"name":"bottom","params":{"columns":"array","n":"invalid","tables":"invalid"}},{"name":"buckets","params":{}},{"name":"count","params":{"columns":"array","tables":"object"}},{"name":"cov","params":{"on":"array","pearsonr":"bool","x":"invalid","y":"invalid"}},{"name":"covariance","params":{"columns":"array","pearsonr":"bool","tables":"object","valueDst":"string"}},{"name":"cumulativeSum","params":{"columns":"array","tables":"object"}},{"name":"databases","params":{}},{"name":"derivative","params":{"columns":"array","nonNegative":"bool","tables":"object","timeColumn":"string","unit":"duration"}},{"name":"difference","params":{"columns":"array","nonNegative":"bool","tables":"object"}},{"name":"distinct","params":{"column":"string","tables":"object"}},{"name":"drop","params":{"columns":"array","fn":"function","tables":"object"}},{"name":"duplicate","params":{"as":"string","column":"string","tables":"object"}},{"name":"duration","params":{"v":"invalid"}},{"name":"filter","params":{"fn":"function","tables":"object"}},{"name":"first","params":{"column":"string","tables":"object"}},{"name":"float","params":{"v":"invalid"}},{"name":"from","params":{"bucket":"string","bucketID":"string"}},{"name":"fromCSV","params":{"csv":"string","file":"string"}},{"name":"fromGenerator","params":{"count":"int","fn":"function","start":"time","stop":"time"}},{"name":"fromInfluxJSON","params":{"file":"string","json":"string"}},{"name":"fromSQL","params":{"dataSourceName":"string","driverName":"string","query":"string"}},{"name":"group","params":{"columns":"array","mode":"string","tables":"object"}},{"name":"highestAverage","params":{"columns":"array","groupColumns":"array","n":"invalid","tables":"invalid"}},{"name":"highestCurrent","params":{"columns":"array","groupColumns":"array","n":"invalid","tables":"invalid"}},{"name":"highestMax","params":{"columns":"array","groupColumns":"array","n":"invalid","tables":"invalid"}},{"name":"histogram","params":{"bins":"array","column":"string","columns":"array","normalize":"bool","tables":"object","upperBoundColumn":"string"}},{"name":"histogramQuantile","params":{"countColumn":"string","minValue":"float","quantile":"float","tables":"object","upperBoundColumn":"string","valueColumn":"string"}},{"name":"increase","params":{"columns":"array","tables":"object"}},{"name":"influxFieldsAsCols","params":{"tables":"object"}},{"name":"int","params":{"v":"invalid"}},{"name":"integral","params":{"columns":"array","tables":"object","timeColumn":"string","unit":"duration"}},{"name":"join","params":{"method":"string","on":"array","tables":"object"}},{"name":"keep","params":{"columns":"array","fn":"function","tables":"object"}},{"name":"keyValues","params":{"fn":"function","keyColumns":"array","tables":"object"}},{"name":"keys","params":{"except":"array","tables":"object"}},{"name":"last","params":{"column":"string","tables":"object"}},{"name":"limit","params":{"n":"int","offset":"int","tables":"object"}},{"name":"linearBins","params":{"count":"int","infinity":"bool","start":"float","width":"float"}},{"name":"logarithmicBins","params":{"count":"int","factor":"float","infinity":"bool","start":"float"}},{"name":"lowestAverage","params":{"columns":"array","groupColumns":"array","n":"invalid","tables":"invalid"}},{"name":"lowestCurrent","params":{"columns":"array","groupColumns":"array","n":"invalid","tables":"invalid"}},{"name":"lowestMin","params":{"columns":"array","groupColumns":"array","n":"invalid","tables":"invalid"}},{"name":"map","params":{"fn":"function","mergeKey":"bool","tables":"object"}},{"name":"max","params":{"column":"string","tables":"object"}},{"name":"mean","params":{"columns":"array","tables":"object"}},{"name":"median","params":{"compression":"float","method":"string","tables":"object"}},{"name":"min","params":{"column":"string","tables":"object"}},{"name":"pearsonr","params":{"on":"invalid","x":"invalid","y":"invalid"}},{"name":"percentile","params":{"column":"string","compression":"float","method":"string","percentile":"float","tables":"object"}},{"name":"pivot","params":{"columnKey":"array","rowKey":"array","tables":"object","valueColumn":"string"}},{"name":"range","params":{"start":"invalid","startColumn":"string","stop":"invalid","stopColumn":"string","tables":"object","timeColumn":"string"}},{"name":"rename","params":{"columns":"object","fn":"function","tables":"object"}},{"name":"sample","params":{"column":"string","n":"int","pos":"int","tables":"object"}},{"name":"set","params":{"key":"string","tables":"object","value":"string"}},{"name":"shift","params":{"columns":"array","shift":"duration","tables":"object"}},{"name":"skew","params":{"columns":"array","tables":"object"}},{"name":"sort","params":{"columns":"array","desc":"bool","tables":"object"}},{"name":"spread","params":{"columns":"array","tables":"object"}},{"name":"stateCount","params":{"fn":"function","label":"string","tables":"object"}},{"name":"stateDuration","params":{"fn":"function","label":"string","tables":"object","unit":"duration"}},{"name":"stateTracking","params":{"countLabel":"string","durationLabel":"string","durationUnit":"duration","fn":"function","tables":"object","timeColumn":"string"}},{"name":"stddev","params":{"columns":"array","tables":"object"}},{"name":"string","params":{"v":"invalid"}},{"name":"sum","params":{"columns":"array","tables":"object"}},{"name":"systemTime","params":{}},{"name":"time","params":{"v":"invalid"}},{"name":"to","params":{"bucket":"string","bucketID":"string","fieldFn":"function","host":"string","measurementColumn":"string","org":"string","orgID":"string","tables":"object","tagColumns":"array","timeColumn":"string","token":"string"}},{"name":"toBool","params":{"tables":"object"}},{"name":"toDuration","params":{"tables":"object"}},{"name":"toFloat","params":{"tables":"object"}},{"name":"toHTTP","params":{"method":"string","name":"string","tables":"object","tagColumns":"array","timeColumn":"string","timeout":"duration","url":"string","valueColumns":"array"}},{"name":"toInt","params":{"tables":"object"}},{"name":"toKafka","params":{"balancer":"string","brokers":"array","name":"string","nameColumn":"string","tables":"object","tagColumns":"array","timeColumn":"string","topic":"string","valueColumns":"array"}},{"name":"toString","params":{"tables":"object"}},{"name":"toTime","params":{"tables":"object"}},{"name":"toUInt","params":{"tables":"object"}},{"name":"top","params":{"columns":"array","n":"invalid","tables":"invalid"}},{"name":"uint","params":{"v":"invalid"}},{"name":"union","params":{"tables":"array"}},{"name":"unique","params":{"column":"string","tables":"object"}},{"name":"window","params":{"createEmpty":"bool","every":"duration","period":"duration","round":"duration","start":"invalid","startColumn":"string","stopColumn":"string","tables":"object","timeColumn":"string"}},{"name":"yield","params":{"name":"string","tables":"object"}}]}
               schema:
                 $ref: "#/components/schemas/FluxSuggestions"
         default:
@@ -2224,6 +2307,8 @@ paths:
     get:
       tags:
         - Authorizations
+      operationId: authorizationsGet
+      x-precondition-operations: [setupPost]
       summary: List all authorizations
       parameters:
         - $ref: '#/components/parameters/TraceSpan'
@@ -2232,16 +2317,19 @@ paths:
           schema:
             type: string
           description: filter authorizations belonging to a user id
+          example: "0000000000000069"
         - in: query
           name: user
           schema:
             type: string
           description: filter authorizations belonging to a user name
+          example: "user2"
       responses:
         '200':
           description: A list of authorizations
           content:
             application/json:
+              example: {"links":{"self":"/api/v2/authorizations"},"auths":[{"links":{"self":"/api/v2/authorizations/0000000000000064","user":"/api/v2/users/0000000000000064"},"id":"0000000000000064","token":"secret","status":"active","user":"user1","userID":"0000000000000064","permissions":[{"action":"create","resource":"user"},{"action":"delete","resource":"user"},{"action":"write","resource":"org"},{"action":"write","resource":"bucket/0000000000000064"}]}]}
               schema:
                 $ref: "#/components/schemas/Authorizations"
         default:
@@ -2253,6 +2341,8 @@ paths:
     post:
       tags:
         - Authorizations
+      operationId: authorizationsPost
+      x-precondition-operations: [setupPost,usersPost,orgsPost,bucketsPost]
       summary: Create an authorization
       parameters:
         - $ref: '#/components/parameters/TraceSpan'
@@ -2261,6 +2351,7 @@ paths:
         required: true
         content:
           application/json:
+            example: {"description":"my token","userID":"0000000000000069","permissions":[{"action":"create","resource":"user"},{"action":"delete","resource":"user"},{"action":"write","resource":"org"},{"action":"write","resource":"bucket/000000000000006a"}]}
             schema:
               $ref: "#/components/schemas/Authorization"
       responses:
@@ -2268,6 +2359,7 @@ paths:
           description: authorization created
           content:
             application/json:
+              example: {"links":{"self":"/api/v2/authorizations/0000000000000064","user":"/api/v2/users/0000000000000064"},"id":"0000000000000064","token":"secret","status":"active","description":"my token","userID":"0000000000000064","permissions":[{"action":"create","resource":"user"},{"action":"delete","resource":"user"},{"action":"write","resource":"org"},{"action":"write","resource":"bucket/0000000000000064"}]}
               schema:
                 $ref: "#/components/schemas/Authorization"
         '400':
@@ -2286,6 +2378,8 @@ paths:
     get:
       tags:
         - Authorizations
+      operationId: authorizationGet
+      x-precondition-operations: [setupPost,usersPost,orgsPost,bucketsPost,authorizationsPost]
       summary: Retrieve an authorization
       parameters:
         - $ref: '#/components/parameters/TraceSpan'
@@ -2295,11 +2389,13 @@ paths:
             type: string
           required: true
           description: ID of authorization to get
+          example: "0000000000000064"
       responses:
         '200':
           description: authorization details
           content:
             application/json:
+              example: {"links":{"self":"/api/v2/authorizations/0000000000000064","user":"/api/v2/users/0000000000000064"},"id":"0000000000000064","token":"secret","status":"active","description":"my token","user":"user1","userID":"0000000000000064","permissions":[{"action":"create","resource":"user"},{"action":"delete","resource":"user"},{"action":"write","resource":"org"},{"action":"write","resource":"bucket/0000000000000064"}]}
               schema:
                 $ref: "#/components/schemas/Authorization"
         default:
@@ -2311,12 +2407,15 @@ paths:
     patch:
       tags:
         - Authorizations
+      operationId: authorizationPatch
+      x-precondition-operations: [setupPost,usersPost,orgsPost,bucketsPost,authorizationsPost]
       summary: update authorization to be active or inactive. requests using an inactive authorization will be rejected.
       requestBody:
         description: authorization to update to apply
         required: true
         content:
           application/json:
+            example: {"status": "inactive"}
             schema:
               $ref: "#/components/schemas/Authorization"
       parameters:
@@ -2327,11 +2426,13 @@ paths:
             type: string
           required: true
           description: ID of authorization to update
+          example: "0000000000000064"
       responses:
         '200':
           description: the active or inactie authorization
           content:
             application/json:
+              example: {"links":{"self":"/api/v2/authorizations/0000000000000064","user":"/api/v2/users/0000000000000064"},"id":"0000000000000064","token":"secret","status":"inactive","description":"my token","user":"user1","userID":"0000000000000064","permissions":[{"action":"create","resource":"user"},{"action":"delete","resource":"user"},{"action":"write","resource":"org"},{"action":"write","resource":"bucket/0000000000000064"}]}
               schema:
                 $ref: "#/components/schemas/Authorization"
         default:
@@ -2343,6 +2444,8 @@ paths:
     delete:
       tags:
         - Authorizations
+      operationId: authorizationDelete
+      x-precondition-operations: [setupPost,usersPost,orgsPost,bucketsPost,authorizationsPost]
       summary: Delete a authorization
       parameters:
         - $ref: '#/components/parameters/TraceSpan'
@@ -2352,6 +2455,7 @@ paths:
             type: string
           required: true
           description: ID of authorization to delete
+          example: "000000000000006c"
       responses:
         '204':
           description: authorization deleted
@@ -2407,6 +2511,8 @@ paths:
     tags:
       - Query
     summary: query influx with specified return formatting. The spec and query fields are mutually exclusive.
+    operationId: queryGet
+    x-precondition-operations: [setupPost]
     parameters:
       - $ref: '#/components/parameters/TraceSpan'
       - in: query
@@ -2472,6 +2578,8 @@ paths:
    post:
     tags:
       - Query
+    operationId: queryPost
+    x-precondition-operations: [setupPost]
     summary: query an influx
     parameters:
       - $ref: '#/components/parameters/TraceSpan'
@@ -2493,7 +2601,9 @@ paths:
             - application/json
       - in: query
         name: org
+        required: true
         description: specifies the name of the organization executing the query.
+        example: "0000000000000066"
         schema:
           type: string
       - in: query
@@ -2503,8 +2613,10 @@ paths:
           type: string
     requestBody:
         description: flux query or specification to execute
+        required: true
         content:
           application/json:
+            example: {"query":"from(bucket:\"mydb/autogen\") |> range(start:2018-05-08T20:50:00Z, stop:2018-05-08T20:51:00Z) |> group(by:[\"_start\",\"_stop\", \"region\", \"host\"]) |> mean() |> group(by:[\"_start\",\"_stop\", \"region\"]) |> yield(name:\"mean\")"}
             schema:
               $ref: "#/components/schemas/Query"
     responses:
@@ -2567,11 +2679,16 @@ paths:
               schema:
                   type: string
                   format: binary
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
   /buckets:
     get:
       tags:
         - Buckets
       summary: List all buckets
+      operationId: bucketsGet
+      x-precondition-operations: [setupPost,orgsPost,bucketsPost]
       parameters:
           - $ref: '#/components/parameters/TraceSpan'
           - $ref: "#/components/parameters/Offset"
@@ -2581,6 +2698,8 @@ paths:
             description: specifies the organization name of the resource
             schema:
               type: string
+            required: true
+            example: "org1"
           - in: query
             name: orgID
             description: specifies the organization id of the resource
@@ -2596,6 +2715,7 @@ paths:
           description: a list of buckets
           content:
             application/json:
+              example: {"links":{"self":"/api/v2/buckets"},"buckets":[{"links":{"log":"/api/v2/buckets/0000000000000064/log","org":"/api/v2/orgs/0000000000000064","self":"/api/v2/buckets/0000000000000064"},"id":"0000000000000064","organizationID":"0000000000000064","organization":"org1","name":"bucket1","retentionRules":[{"type":"expire","everySeconds":3600}]}]}
               schema:
                 $ref: "#/components/schemas/Buckets"
         default:
@@ -2616,11 +2736,14 @@ paths:
             required: true
             schema:
               type: string
+      operationId: bucketsPost
+      x-precondition-operations: [setupPost,orgsPost]
       requestBody:
         description: bucket to create
         required: true
         content:
           application/json:
+            example: {"links":{"log":"/api/v2/buckets/000000000000006a/log","org":"/api/v2/orgs/0000000000000069","self":"/api/v2/buckets/000000000000006a"},"id":"000000000000006a","organizationID":"0000000000000069","organization":"org2","name":"bucket1","retentionRules":[{"type":"expire","everySeconds":3600}]}
             schema:
               $ref: "#/components/schemas/Bucket"
       responses:
@@ -2628,6 +2751,7 @@ paths:
           description: Bucket created
           content:
             application/json:
+              example: {"links":{"log":"/api/v2/buckets/000000000000006a/log","org":"/api/v2/orgs/0000000000000069","self":"/api/v2/buckets/000000000000006a"},"id":"000000000000006a","organizationID":"0000000000000069","organization":"org2","name":"bucket1","retentionRules":[{"type":"expire","everySeconds":3600}]}
               schema:
                 $ref: "#/components/schemas/Bucket"
         default:
@@ -2641,6 +2765,8 @@ paths:
       tags:
         - Buckets
       summary: Retrieve a bucket
+      operationId: bucketGet
+      x-precondition-operations: [setupPost,orgsPost,bucketsPost]
       parameters:
         - $ref: '#/components/parameters/TraceSpan'
         - in: path
@@ -2648,12 +2774,14 @@ paths:
           schema:
             type: string
           required: true
+          example: "000000000000006a"
           description: ID of bucket to get
       responses:
         '200':
           description: bucket details
           content:
             application/json:
+              example: {"links":{"log":"/api/v2/buckets/000000000000006a/log","org":"/api/v2/orgs/0000000000000069","self":"/api/v2/buckets/000000000000006a"},"id":"000000000000006a","organizationID":"0000000000000069","organization":"org2","name":"bucket1","retentionRules":[{"type":"expire","everySeconds":3600}]}
               schema:
                 $ref: "#/components/schemas/Bucket"
         default:
@@ -2666,11 +2794,14 @@ paths:
       tags:
         - Buckets
       summary: Update a bucket
+      operationId: bucketPatch
+      x-precondition-operations: [setupPost,orgsPost,bucketsPost]
       requestBody:
         description: bucket update to apply
         required: true
         content:
           application/json:
+            example: {"name":"newbucketname","retentionRules":[{"type":"expire","everySeconds":86400}]}
             schema:
               $ref: "#/components/schemas/Bucket"
       parameters:
@@ -2680,12 +2811,14 @@ paths:
           schema:
             type: string
           required: true
+          example: "000000000000006a"
           description: ID of bucket to update
       responses:
         '200':
           description: An updated bucket
           content:
             application/json:
+              example: {"links":{"log":"/api/v2/buckets/000000000000006a/log","org":"/api/v2/orgs/0000000000000069","self":"/api/v2/buckets/000000000000006a"},"id":"000000000000006a","organizationID":"0000000000000069","organization":"org2","name":"newbucketname","retentionRules":[{"type":"expire","everySeconds":86400}]}
               schema:
                 $ref: "#/components/schemas/Bucket"
         default:
@@ -2698,12 +2831,15 @@ paths:
       tags:
         - Buckets
       summary: Delete a bucket
+      operationId: bucketDelete
+      x-precondition-operations: [setupPost,orgsPost,bucketsPost]
       parameters:
         - $ref: '#/components/parameters/TraceSpan'
         - in: path
           name: bucketID
           schema:
             type: string
+          example: "000000000000006a"
           required: true
           description: ID of bucket to delete
       responses:
@@ -3049,11 +3185,14 @@ paths:
       tags:
         - Organizations
       summary: List all organizations
+      operationId: orgsGet
+      x-precondition-operations: [setupPost,orgsPost]
       responses:
         '200':
           description: A list of organizations
           content:
             application/json:
+              example: {"links":{"self":"/api/v2/orgs"},"orgs":[{"links":{"buckets":"/api/v2/buckets?org=org1","dashboards":"/api/v2/dashboards?org=org1","log":"/api/v2/orgs/0000000000000064/log","members":"/api/v2/orgs/0000000000000064/members","self":"/api/v2/orgs/0000000000000064","tasks":"/api/v2/tasks?org=org1"},"id":"0000000000000064","name":"org1"}]}
               schema:
                 $ref: "#/components/schemas/Organizations"
         default:
@@ -3068,11 +3207,14 @@ paths:
       summary: Create an organization
       parameters:
         - $ref: '#/components/parameters/TraceSpan'
+      operationId: orgsPost
+      x-precondition-operations: [setupPost]
       requestBody:
         description: organization to create
         required: true
         content:
           application/json:
+            example: {"name":"org2"}
             schema:
               $ref: "#/components/schemas/Organization"
       responses:
@@ -3080,6 +3222,7 @@ paths:
           description: organization created
           content:
             application/json:
+              example: {"links":{"buckets":"/api/v2/buckets?org=org2","dashboards":"/api/v2/dashboards?org=org2","log":"/api/v2/orgs/0000000000000069/log","members":"/api/v2/orgs/0000000000000069/members","self":"/api/v2/orgs/0000000000000069","tasks":"/api/v2/tasks?org=org2"},"id":"0000000000000069","name":"org2"}
               schema:
                 $ref: "#/components/schemas/Organization"
         default:
@@ -3093,6 +3236,8 @@ paths:
       tags:
         - Organizations
       summary: Retrieve an organization
+      operationId: orgGet
+      x-precondition-operations: [setupPost,orgsPost]
       parameters:
         - $ref: '#/components/parameters/TraceSpan'
         - in: path
@@ -3100,12 +3245,14 @@ paths:
           schema:
             type: string
           required: true
-          description: ID of organization to get
+          example: "0000000000000069"
+          description: ID of organization
       responses:
         '200':
           description: organization details
           content:
             application/json:
+              example: {"links":{"buckets":"/api/v2/buckets?org=org2","dashboards":"/api/v2/dashboards?org=org2","log":"/api/v2/orgs/0000000000000069/log","members":"/api/v2/orgs/0000000000000069/members","self":"/api/v2/orgs/0000000000000069","tasks":"/api/v2/tasks?org=org2"},"id":"0000000000000069","name":"org2"}
               schema:
                 $ref: "#/components/schemas/Organization"
         default:
@@ -3118,6 +3265,8 @@ paths:
       tags:
         - Organizations
       summary: Update an organization
+      operationId: orgPatch
+      x-precondition-operations: [setupPost,orgsPost]
       requestBody:
         description: organization update to apply
         required: true
@@ -3132,12 +3281,14 @@ paths:
           schema:
             type: string
           required: true
+          example: "0000000000000064"
           description: ID of organization to get
       responses:
         '200':
           description: organization updated
           content:
             application/json:
+              example: {"links":{"buckets":"/api/v2/buckets?org=org1","dashboards":"/api/v2/dashboards?org=org1","log":"/api/v2/orgs/0000000000000064/log","members":"/api/v2/orgs/0000000000000064/members","self":"/api/v2/orgs/0000000000000064","tasks":"/api/v2/tasks?org=org1"},"id":"0000000000000064","name":"neworgname"}
               schema:
                 $ref: "#/components/schemas/Organization"
         default:
@@ -3150,12 +3301,15 @@ paths:
       tags:
         - Organizations
       summary: Delete an organization
+      operationId: orgDelete
+      x-precondition-operations: [setupPost,orgsPost]
       parameters:
         - $ref: '#/components/parameters/TraceSpan'
         - in: path
           name: orgID
           schema:
             type: string
+          example: "0000000000000069"
           required: true
           description: ID of organization to delete
       responses:
@@ -3337,6 +3491,7 @@ paths:
           description: a list of all secret keys
           content:
             application/json:
+              example: {"links":{"buckets":"/api/v2/buckets?org=org1","dashboards":"/api/v2/dashboards?org=org1","log":"/api/v2/orgs/0000000000000064/log","members":"/api/v2/orgs/0000000000000064/members","self":"/api/v2/orgs/0000000000000064","tasks":"/api/v2/tasks?org=org1"},"id":"0000000000000064","name":"org1"}
               schema:
                 $ref: "#/components/schemas/SecretKeys"
         default:
@@ -3363,6 +3518,7 @@ paths:
         required: true
         content:
           application/json:
+            example: {"name":"neworgname"}
             schema:
               $ref: "#/components/schemas/Secrets"
       responses:
@@ -4093,6 +4249,8 @@ paths:
     get:
       tags:
         - Users
+      operationId: meGet
+      x-precondition-operations: [setupPost]
       summary: Returns currently authenticated user
       parameters:
         - $ref: '#/components/parameters/TraceSpan'
@@ -4101,6 +4259,7 @@ paths:
           description: currently authenticated user
           content:
             application/json:
+              example: {"links":{"log":"/api/v2/users/0000000000000065/log","self":"/api/v2/users/0000000000000065"},"id":"0000000000000065","name":"user1"}
               schema:
                 $ref: "#/components/schemas/User"
         default:
@@ -4114,6 +4273,8 @@ paths:
       tags:
         - Users
       summary: Update password
+      operationId: mePasswordPut
+      x-precondition-operations: [setupPost]
       security:
         - basicAuth: []
       parameters:
@@ -4123,6 +4284,7 @@ paths:
         required: true
         content:
           application/json:
+            example: {"password":"newpassword"}
             schema:
               $ref: "#/components/schemas/PasswordResetBody"
       responses:
@@ -4319,11 +4481,14 @@ paths:
       summary: List all users
       parameters:
         - $ref: '#/components/parameters/TraceSpan'
+      operationId: usersGet
+      x-precondition-operations: [setupPost,usersPost]
       responses:
         '200':
           description: a list of users
           content:
             application/json:
+              example: {"links":{"self":"/api/v2/users"},"users":[{"links":{"log":"/api/v2/users/0000000000000065/log","self":"/api/v2/users/0000000000000065"},"id":"0000000000000065","name":"user1"},{"links":{"log":"/api/v2/users/0000000000000069/log","self":"/api/v2/users/0000000000000069"},"id":"0000000000000069","name":"user2"}]}
               schema:
                 $ref: "#/components/schemas/Users"
         default:
@@ -4335,12 +4500,15 @@ paths:
     post:
       tags:
         - Users
+      operationId: usersPost
+      x-precondition-operations: [setupPost]
       summary: Create a user
       requestBody:
         description: user to create
         required: true
         content:
           application/json:
+            example: {"name":"user2"}
             schema:
               $ref: "#/components/schemas/User"
       responses:
@@ -4348,6 +4516,7 @@ paths:
           description: user created
           content:
             application/json:
+              example: {"links":{"log":"/api/v2/users/0000000000000069/log","self":"/api/v2/users/0000000000000069"},"id":"0000000000000069","name":"user2"}
               schema:
                 $ref: "#/components/schemas/User"
         default:
@@ -4361,6 +4530,8 @@ paths:
       tags:
         - Users
       summary: Retrieve a user
+      operationId: userGet
+      x-precondition-operations: [setupPost,usersPost]
       parameters:
         - $ref: '#/components/parameters/TraceSpan'
         - in: path
@@ -4368,12 +4539,14 @@ paths:
           schema:
             type: string
           required: true
+          example: "0000000000000065"
           description: ID of user to get
       responses:
         '200':
           description: user details
           content:
             application/json:
+              example: {"links":{"log":"/api/v2/users/0000000000000065/log","self":"/api/v2/users/0000000000000065"},"id":"0000000000000065","name":"user1"}
               schema:
                 $ref: "#/components/schemas/User"
         default:
@@ -4386,11 +4559,14 @@ paths:
       tags:
         - Users
       summary: Update a user
+      operationId: userPatch
+      x-precondition-operations: [setupPost,usersPost]
       requestBody:
         description: user update to apply
         required: true
         content:
           application/json:
+            example: {"name":"newname"}
             schema:
               $ref: "#/components/schemas/User"
       parameters:
@@ -4400,12 +4576,14 @@ paths:
           schema:
             type: string
           required: true
+          example: "0000000000000065"
           description: ID of user to update
       responses:
         '200':
           description: user updated
           content:
             application/json:
+              example: {"links":{"log":"/api/v2/users/0000000000000065/log","self":"/api/v2/users/0000000000000065"},"id":"0000000000000065","name":"newname"}
               schema:
                 $ref: "#/components/schemas/User"
         default:
@@ -4418,6 +4596,8 @@ paths:
       tags:
         - Users
       summary: deletes a user
+      operationId: userDelete
+      x-precondition-operations: [setupPost,usersPost]
       parameters:
         - $ref: '#/components/parameters/TraceSpan'
         - in: path
@@ -4425,6 +4605,7 @@ paths:
           schema:
             type: string
           required: true
+          example: "0000000000000065"
           description: ID of user to delete
       responses:
         '204':
@@ -4442,6 +4623,8 @@ paths:
       summary: Update password
       security:
         - basicAuth: []
+      operationId: userPasswordPut
+      x-precondition-operations: [setupPost,usersPost]
       parameters:
         - $ref: '#/components/parameters/TraceSpan'
         - in: path
@@ -4449,12 +4632,14 @@ paths:
           schema:
             type: string
           required: true
+          example: "0000000000000065"
           description: ID of the user
       requestBody:
         description: new password
         required: true
         content:
           application/json:
+            example: {"password":"newpassword"}
             schema:
               $ref: "#/components/schemas/PasswordResetBody"
       responses:
@@ -4656,17 +4841,6 @@ components:
             - delete
         resource:
           type: string
-          enum:
-            - user
-            - org
-            - task/:id
-            - bucket/:id
-            - dashboard/:id
-            - org/:id
-            - org/:id/task
-            - org/:id/bucket
-            - org/:id/source
-            - org/:id/dashboard
     Authorization:
       properties:
         links:
@@ -5101,12 +5275,14 @@ components:
       type: object
       properties:
         funcs:
-          type: object
-          properties:
-            name:
-              type: string
-            params:
-              type: object
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+              params:
+                type: object
     FluxLinks:
       type: object
       properties:
@@ -5223,10 +5399,12 @@ components:
           readOnly: true
           description: op describes the logical code operation during error. Useful for debugging.
           type: string
+          nullable: true
         err:
           readOnly: true
           description: err is a stack of errors that occurred during processing of the request. Useful for debugging.
           type: string
+          nullable: true
       required: [code, message]
     LineProtocolError:
       properties:
@@ -5776,7 +5954,20 @@ components:
             - $ref: "#/components/schemas/MapMacroProperties"
     Macros:
       type: object
+      properties:
+        macros:
+          type: array
+          items:
+            $ref: "#/components/schemas/Macro"
+        links:
+          type: object
+          properties:
+            self:
+              type: string
+              format: uri
       example:
+        links:
+          self: /api/v2/macros
         macros:
         - id: '1221432'
           name: ":ok:"
@@ -5808,9 +5999,6 @@ components:
             type: query
             query: 'from(bucket: "foo") |> showMeasurements()'
             language: flux
-      properties:
-        macros:
-          $ref: "#/components/schemas/Macro"
     View:
       properties:
         links:
