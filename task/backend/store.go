@@ -11,6 +11,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/influxdata/flux/ast"
+	"github.com/influxdata/flux/ast/edit"
+	"github.com/influxdata/flux/parser"
+	"github.com/influxdata/flux/values"
 	"github.com/influxdata/platform"
 	"github.com/influxdata/platform/task/options"
 )
@@ -172,6 +176,53 @@ type UpdateTaskRequest struct {
 	// The new desired task status.
 	// If empty, do not modify the existing status.
 	Status TaskStatus
+
+	// These options are for editing options via request zeroed options will be ignored.
+	options.Options
+}
+
+// UpdateFlux updates the taskupdate to go from updating options to updating a flux string, that now has those updated options in it
+// It zeros the options in the TaskUpdate.
+func (t *UpdateTaskRequest) UpdateFlux(oldFlux string) error {
+	if t.Script != "" {
+		oldFlux = t.Script
+	}
+	parsed := parser.ParseSource(oldFlux)
+	if ast.Check(parsed) > 0 {
+		return ast.GetError(parsed)
+	}
+	// so we don't allocate if we are just changing the status
+	if t.Every != 0 && t.Cron != "" {
+		return errors.New("Cannot specify both every and cron")
+	}
+	if t.Name != "" || !t.IsZero() {
+		op := make(map[string]values.Value, 5)
+		switch {
+		case t.Name != "":
+			op["name"] = values.NewString(t.Name)
+		case t.Every != 0:
+			op["every"] = values.NewDuration(values.Duration(t.Every))
+		case t.Cron != "":
+			op["cron"] = values.NewString(t.Cron)
+		case t.Offset != 0:
+			op["offset"] = values.NewDuration(values.Duration(t.Offset))
+		case t.Concurrency != 0:
+			op["concurrency"] = values.NewInt(t.Concurrency)
+		case t.Retry != 0:
+			op["retry"] = values.NewInt(t.Retry)
+		}
+		ok, err := edit.Option(parsed, "task", edit.OptionObjectFn(op))
+		if err != nil {
+			return err
+		}
+		if !ok {
+			return errors.New("unable to edit option")
+		}
+		t.Options.Zero()
+		t.Script = ast.Format(parsed)
+		return nil
+	}
+	return nil
 }
 
 // UpdateTaskResult describes the result of modifying a single task.
@@ -386,21 +437,25 @@ func (StoreValidation) CreateArgs(req CreateTaskRequest) (options.Options, error
 // If the update contains neither a new script nor a new status, or if the script is invalid, an error is returned.
 func (StoreValidation) UpdateArgs(req UpdateTaskRequest) (options.Options, error) {
 	var missing []string
-	var o options.Options
-
-	if req.Script == "" && req.Status == "" {
-		missing = append(missing, "script or status")
-	} else {
-		if req.Script != "" {
-			var err error
-			o, err = options.FromScript(req.Script)
-			if err != nil {
-				return o, err
-			}
-		}
-		if err := req.Status.validate(true); err != nil {
+	o := req.Options
+	if req.Script == "" && req.Status == "" && req.Options.IsZero() {
+		missing = append(missing, "script or status or options")
+	}
+	if req.Script != "" {
+		err := req.UpdateFlux(req.Script)
+		if err != nil {
 			return o, err
 		}
+		fmt.Println("options", req.Options)
+		req.Zero()
+		o, err = options.FromScript(req.Script)
+		fmt.Println("updateargs:", req.Script)
+		if err != nil {
+			return o, err
+		}
+	}
+	if err := req.Status.validate(true); err != nil {
+		return o, err
 	}
 
 	if !req.ID.Valid() {

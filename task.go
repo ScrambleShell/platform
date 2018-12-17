@@ -2,6 +2,16 @@ package platform
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
+	"time"
+
+	"github.com/influxdata/flux"
+	"github.com/influxdata/flux/ast"
+	"github.com/influxdata/flux/ast/edit"
+	"github.com/influxdata/flux/parser"
+	"github.com/influxdata/flux/values"
+	"github.com/influxdata/platform/task/options"
 )
 
 const (
@@ -80,6 +90,99 @@ type TaskService interface {
 type TaskUpdate struct {
 	Flux   *string `json:"flux,omitempty"`
 	Status *string `json:"status,omitempty"`
+	options.Options
+}
+
+func (t *TaskUpdate) UnmarshalJSON(data []byte) error {
+	// this is a type so we can marshal string into durations nicely
+	type TempOptions struct {
+		Name string `json:"options,omitempty"`
+
+		// Cron is a cron style time schedule that can be used in place of Every.
+		Cron string `json:"cron,omitempty"`
+
+		// Every represents a fixed period to repeat execution.
+		Every flux.Duration `json:"every,omitempty"`
+
+		// Offset represents a delay before execution.
+		Offset flux.Duration `json:"offset,omitempty"`
+
+		Concurrency int64 `json:"concurrency,omitempty"`
+
+		Retry int64 `json:"retry,omitempty"`
+	}
+
+	jo := struct {
+		Flux   *string `json:"flux,omitempty"`
+		Status *string `json:"status,omitempty"`
+		TempOptions
+	}{}
+
+	if err := json.Unmarshal(data, &jo); err != nil {
+		return err
+	}
+	t.Name = jo.Name
+	t.Cron = jo.Cron
+	t.Every = time.Duration(jo.Every)
+	t.Offset = time.Duration(jo.Offset)
+	t.Concurrency = jo.Concurrency
+	t.Retry = jo.Retry
+	t.Flux = jo.Flux
+	t.Status = jo.Status
+
+	return nil
+}
+
+func (t TaskUpdate) Validate() error {
+	switch {
+	case t.Every != 0 && t.Cron != "":
+		return errors.New("cannot specify both every and cron")
+	case t.Flux == nil && t.Status == nil && t.Options.IsZero():
+		return errors.New("cannot update task without content")
+	}
+	return nil
+}
+
+// UpdateFlux updates the TaskUpdate to go from updating options to updating a flux string, that now has those updated options in it
+// It zeros the options in the TaskUpdate.
+func (t *TaskUpdate) UpdateFlux(oldFlux string) error {
+	if t.Flux != nil {
+		return nil
+	}
+	parsed := parser.ParseSource(oldFlux)
+	if ast.Check(parsed) > 0 {
+		return ast.GetError(parsed)
+	}
+	if t.Every != 0 && t.Cron != "" {
+		return errors.New("Cannot specify both every and cron")
+	}
+	// so we don't allocate if we are just changing the status
+	if t.Name != "" || t.Every != 0 || t.Cron != "" || t.Offset != 0 {
+		op := make(map[string]values.Value, 4)
+
+		switch {
+		case t.Name != "":
+			op["name"] = values.NewString(t.Name)
+		case t.Every != 0:
+			op["every"] = values.NewDuration(values.Duration(t.Every))
+		case t.Cron != "":
+			op["cron"] = values.NewString(t.Cron)
+		case t.Offset != 0:
+			op["offset"] = values.NewDuration(values.Duration(t.Offset))
+		}
+		ok, err := edit.Option(parsed, "task", edit.OptionObjectFn(op))
+		if err != nil {
+			return err
+		}
+		if !ok {
+			return errors.New("unable to edit option")
+		}
+		t.Options.Zero()
+		s := ast.Format(parsed)
+		t.Flux = &s
+		return nil
+	}
+	return nil
 }
 
 // TaskFilter represents a set of filters that restrict the returned results

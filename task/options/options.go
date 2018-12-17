@@ -31,20 +31,35 @@ const maxRetry = 10
 // Options are the task-related options that can be specified in a Flux script.
 type Options struct {
 	// Name is a non optional name designator for each task.
-	Name string
+	Name string `json:"options,omitempty"`
 
 	// Cron is a cron style time schedule that can be used in place of Every.
-	Cron string
+	Cron string `json:"cron,omitempty"`
 
 	// Every represents a fixed period to repeat execution.
-	Every time.Duration
+	// this can be unmarshaled from json as a string i.e.: "1d" will unmarshal as 1 day
+	Every time.Duration `json:"every,omitempty"`
 
 	// Offset represents a delay before execution.
-	Offset time.Duration
+	// this can be unmarshaled from json as a string i.e.: "1d" will unmarshal as 1 day
+	Offset time.Duration `json:"offset,omitempty"`
 
-	Concurrency int64
+	Concurrency int64 `json:"concurrency,omitempty"`
 
-	Retry int64
+	Retry int64 `json:"retry,omitempty"`
+}
+
+func (o *Options) Zero() {
+	o.Name = ""
+	o.Cron = ""
+	o.Every = 0
+	o.Offset = 0
+	o.Concurrency = 0
+	o.Retry = 0
+}
+
+func (o *Options) IsZero() bool {
+	return o.Name == "" && o.Cron == "" && o.Every == 0 && o.Offset == 0 && o.Concurrency == 0 && o.Retry == 0
 }
 
 // FromScript extracts Options from a Flux script.
@@ -68,11 +83,11 @@ func FromScript(script string) (Options, error) {
 
 	// pull options from interpreter
 	task := inter.Option("task")
+	fmt.Println(task)
 	if task == nil {
 		return opt, errors.New("task not defined")
 	}
 	optObject := task.Object()
-
 	nameVal, ok := optObject.Get("name")
 	if !ok {
 		return opt, errors.New("missing name in task options")
@@ -82,12 +97,12 @@ func FromScript(script string) (Options, error) {
 		return opt, err
 	}
 	opt.Name = nameVal.Str()
-
 	crVal, cronOK := optObject.Get("cron")
 	everyVal, everyOK := optObject.Get("every")
 	if cronOK && everyOK {
 		return opt, errors.New("cannot use both cron and every in task options")
 	}
+
 	if !cronOK && !everyOK {
 		return opt, errors.New("cron or every is required")
 	}
