@@ -184,7 +184,7 @@ class Label extends Component<Props, State> {
 
     if (!isValidLength || !containsValidCharacters) {
       throw new Error(
-        '<Label /> component has been passed a invalid hexColor prop'
+        '<Label /> component has been passed a invalid colorHex prop'
       )
     }
   }

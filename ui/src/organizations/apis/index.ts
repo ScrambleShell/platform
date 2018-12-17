@@ -5,6 +5,7 @@ import {orgsAPI, bucketsAPI, dashboardsAPI, taskAPI} from 'src/utils/api'
 
 // Types
 import {Bucket, Dashboard, Task, Organization, User} from 'src/api'
+import {LabelType} from 'src/clockface'
 
 // CRUD APIs for Organizations and Organization resources
 // i.e. Organization Members, Buckets, Dashboards etc
@@ -124,4 +125,49 @@ export const getTasks = async (org: Organization): Promise<Task[]> => {
     console.error('Could not get tasks for org', error)
     throw error
   }
+}
+
+export const getLabels = async (org: Organization): Promise<LabelType[]> => {
+  // Use try catch when accessing the actual API
+  // TODO: Delete this silly mocks
+  const mockLabels: LabelType[] = [
+    {
+      id: '0',
+      text: 'Swogglez',
+      description: 'I am an example Label',
+      colorHex: '#ff0054',
+    },
+    {
+      id: '1',
+      text: 'Top Secret',
+      description: 'Only admins can modify these resources',
+      colorHex: '#4a52f4',
+    },
+    {
+      id: '2',
+      text: 'Pineapples',
+      description: 'Pineapples are in my head',
+      colorHex: '#f4c24a',
+    },
+    {
+      id: '3',
+      text: 'SWAT',
+      description: 'Boots and cats and boots and cats',
+      colorHex: '#d6ff9c',
+    },
+    {
+      id: '4',
+      text: 'the GOAT',
+      description: 'Gatsby obviously ate turnips',
+      colorHex: '#17d9f0',
+    },
+    {
+      id: '5',
+      text: 'My Spoon is Too Big',
+      description: 'My Spooooooooon is Too Big',
+      colorHex: '#27c27e',
+    },
+  ]
+
+  return mockLabels
 }

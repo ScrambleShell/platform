@@ -10,6 +10,7 @@ import {
   getDashboards,
   getMembers,
   getTasks,
+  getLabels,
 } from 'src/organizations/apis'
 
 // Actions
@@ -24,13 +25,13 @@ import Members from 'src/organizations/components/Members'
 import Buckets from 'src/organizations/components/Buckets'
 import Dashboards from 'src/organizations/components/Dashboards'
 import Tasks from 'src/organizations/components/Tasks'
-import OrgLabels from 'src/organizations/components/OrgLabels'
+import Labels from 'src/organizations/components/Labels'
 import OrgOptions from 'src/organizations/components/OrgOptions'
 import GetOrgResources from 'src/organizations/components/GetOrgResources'
 
 // Types
 import {AppState, Dashboard} from 'src/types/v2'
-
+import {LabelType} from 'src/clockface'
 import {User, Bucket, Organization, Task} from 'src/api'
 
 // Decorators
@@ -132,7 +133,16 @@ class OrganizationView extends PureComponent<Props> {
                 url="labels_tab"
                 title="Labels"
               >
-                <OrgLabels labels={[]} />
+                <GetOrgResources<LabelType[]>
+                  organization={org}
+                  fetcher={getLabels}
+                >
+                  {(labels, loading) => (
+                    <Spinner loading={loading}>
+                      <Labels labels={labels} />
+                    </Spinner>
+                  )}
+                </GetOrgResources>
               </ProfilePageSection>
               <ProfilePageSection
                 id="org-view-tab--options"
