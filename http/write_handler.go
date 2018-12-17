@@ -209,17 +209,101 @@ type postWriteRequest struct {
 	Precision string
 }
 
+// WriteServiceV1 sends data over HTTP to influxdb v1 via line protocol.
+type WriteServiceV1 struct {
+	Addr               string
+	Database           string
+	Rp                 string
+	Precision          string
+	Consistency        string
+	Username           string
+	Password           string
+	InsecureSkipVerify bool
+}
+
+var _ platform.WriteService = (*WriteServiceV1)(nil)
+
+// convertPrecisionToInfluxDB1 is an helper function that converts the SI units
+// used in Platform to what it is used for InfluxDB
+func convertPrecisionToInfluxDB1(precision string) string {
+	switch precision {
+	case "ns":
+		return "n"
+	case "us":
+		return "u"
+	default:
+		return precision
+	}
+}
+
+func (s *WriteServiceV1) Write(ctx context.Context, r io.Reader) error {
+	precision := s.Precision
+	if precision == "" {
+		precision = "ns"
+	}
+	consistency := s.Consistency
+	if consistency == "" {
+		consistency = "one"
+	}
+
+	if !models.ValidPrecision(precision) {
+		return fmt.Errorf("invalid precision")
+	}
+
+	precision = convertPrecisionToInfluxDB1(precision)
+
+	u, err := newURL(s.Addr, "/write")
+	if err != nil {
+		return err
+	}
+
+	r, err = compressWithGzip(r)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest("POST", u.String(), r)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Content-Type", "text/plain; charset=utf-8")
+	req.Header.Set("Content-Encoding", "gzip")
+
+	params := req.URL.Query()
+	params.Set("db", s.Database)
+	params.Set("rp", s.Rp)
+	params.Set("precision", precision)
+	params.Set("consistency", consistency)
+	if s.Username != "" {
+		req.SetBasicAuth(s.Username, s.Password)
+	}
+
+	req.URL.RawQuery = params.Encode()
+
+	hc := newClient(u.Scheme, s.InsecureSkipVerify)
+
+	resp, err := hc.Do(req)
+	if err != nil {
+		return err
+	}
+
+	return CheckError(resp)
+}
+
 // WriteService sends data over HTTP to influxdb via line protocol.
 type WriteService struct {
 	Addr               string
 	Token              string
 	Precision          string
 	InsecureSkipVerify bool
+	OrgID              platform.ID
+	BucketID           platform.ID
 }
 
 var _ platform.WriteService = (*WriteService)(nil)
 
-func (s *WriteService) Write(ctx context.Context, orgID, bucketID platform.ID, r io.Reader) error {
+func (s *WriteService) Write(ctx context.Context, r io.Reader) error {
 	precision := s.Precision
 	if precision == "" {
 		precision = "ns"
@@ -252,12 +336,12 @@ func (s *WriteService) Write(ctx context.Context, orgID, bucketID platform.ID, r
 	req.Header.Set("Content-Encoding", "gzip")
 	SetToken(s.Token, req)
 
-	org, err := orgID.Encode()
+	org, err := s.OrgID.Encode()
 	if err != nil {
 		return err
 	}
 
-	bucket, err := bucketID.Encode()
+	bucket, err := s.BucketID.Encode()
 	if err != nil {
 		return err
 	}

@@ -29,7 +29,7 @@ type Batcher struct {
 }
 
 // Write reads r in batches and sends to the output.
-func (b *Batcher) Write(ctx context.Context, org, bucket platform.ID, r io.Reader) error {
+func (b *Batcher) Write(ctx context.Context, r io.Reader) error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
@@ -40,7 +40,7 @@ func (b *Batcher) Write(ctx context.Context, org, bucket platform.ID, r io.Reade
 	lines := make(chan []byte)
 
 	writeErrC := make(chan error)
-	go b.write(ctx, org, bucket, lines, writeErrC)
+	go b.write(ctx, lines, writeErrC)
 
 	readErrC := make(chan error)
 	go b.read(ctx, r, lines, readErrC)
@@ -87,7 +87,7 @@ func (b *Batcher) read(ctx context.Context, r io.Reader, lines chan<- []byte, er
 // finishes when the lines channel is closed or context is done.
 // if an error occurs while writing data to the write service, the error is send in the
 // errC channel and the function returns.
-func (b *Batcher) write(ctx context.Context, org, bucket platform.ID, lines <-chan []byte, errC chan<- error) {
+func (b *Batcher) write(ctx context.Context, lines <-chan []byte, errC chan<- error) {
 	flushInterval := b.MaxFlushInterval
 	if flushInterval == 0 {
 		flushInterval = DefaultInterval
@@ -117,7 +117,7 @@ func (b *Batcher) write(ctx context.Context, org, bucket platform.ID, lines <-ch
 			if len(buf) >= maxBytes || (!more && len(buf) > 0) {
 				r.Reset(buf)
 				timer.Reset(flushInterval)
-				if err := b.Service.Write(ctx, org, bucket, r); err != nil {
+				if err := b.Service.Write(ctx, r); err != nil {
 					errC <- err
 					return
 				}
@@ -127,7 +127,7 @@ func (b *Batcher) write(ctx context.Context, org, bucket platform.ID, lines <-ch
 			if len(buf) > 0 {
 				r.Reset(buf)
 				timer.Reset(flushInterval)
-				if err := b.Service.Write(ctx, org, bucket, r); err != nil {
+				if err := b.Service.Write(ctx, r); err != nil {
 					errC <- err
 					return
 				}

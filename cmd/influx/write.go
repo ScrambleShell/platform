@@ -141,11 +141,13 @@ func fluxWriteF(cmd *cobra.Command, args []string) error {
 			Addr:      flags.host,
 			Token:     flags.token,
 			Precision: writeFlags.Precision,
+			OrgID:     orgID,
+			BucketID:  bucketID,
 		},
 	}
 
 	ctx = signals.WithStandardSignals(ctx)
-	if err := s.Write(ctx, orgID, bucketID, r); err != context.Canceled {
+	if err := s.Write(ctx, r); err != context.Canceled {
 		return err
 	}
 	return nil

@@ -7,5 +7,5 @@ import (
 
 // WriteService writes data read from the reader.
 type WriteService interface {
-	Write(ctx context.Context, org, bucket ID, r io.Reader) error
+	Write(ctx context.Context, r io.Reader) error
 }

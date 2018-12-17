@@ -13,6 +13,14 @@ import (
 	"github.com/influxdata/platform"
 )
 
+func TestConvertPrecisionToInfluxDB1(t *testing.T) {
+	precision := "ns"
+	precision = convertPrecisionToInfluxDB1(precision)
+	if precision != "n" {
+		t.Errorf("expected n got %s", precision)
+	}
+}
+
 func TestWriteService_Write(t *testing.T) {
 	type args struct {
 		org    platform.ID
@@ -50,9 +58,11 @@ func TestWriteService_Write(t *testing.T) {
 				w.WriteHeader(tt.status)
 			}))
 			s := &WriteService{
-				Addr: ts.URL,
+				Addr:     ts.URL,
+				OrgID:    tt.args.org,
+				BucketID: tt.args.bucket,
 			}
-			if err := s.Write(context.Background(), tt.args.org, tt.args.bucket, tt.args.r); (err != nil) != tt.wantErr {
+			if err := s.Write(context.Background(), tt.args.r); (err != nil) != tt.wantErr {
 				t.Errorf("WriteService.Write() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			if got, want := *org, tt.args.org; got != want {

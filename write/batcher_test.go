@@ -256,7 +256,7 @@ func TestBatcher_write(t *testing.T) {
 			// or get back all the bytes from the reader.
 			var got string
 			svc := &mock.WriteService{
-				WriteF: func(ctx context.Context, org, bucket platform.ID, r io.Reader) error {
+				WriteF: func(ctx context.Context, r io.Reader) error {
 					if tt.args.writeError {
 						return fmt.Errorf("error")
 					}
@@ -272,7 +272,7 @@ func TestBatcher_write(t *testing.T) {
 				Service:          svc,
 			}
 
-			go b.write(ctx, tt.args.org, tt.args.bucket, tt.args.lines, tt.args.errC)
+			go b.write(ctx, tt.args.lines, tt.args.errC)
 
 			if cancel != nil {
 				cancel()
@@ -365,7 +365,7 @@ func TestBatcher_Write(t *testing.T) {
 				gotFlushes int
 			)
 			svc := &mock.WriteService{
-				WriteF: func(ctx context.Context, org, bucket platform.ID, r io.Reader) error {
+				WriteF: func(ctx context.Context, r io.Reader) error {
 					if tt.args.writeError {
 						return fmt.Errorf("error")
 					}
@@ -383,7 +383,7 @@ func TestBatcher_Write(t *testing.T) {
 			}
 
 			ctx := context.Background()
-			if err := b.Write(ctx, tt.args.org, tt.args.bucket, tt.args.r); (err != nil) != tt.wantErr {
+			if err := b.Write(ctx, tt.args.r); (err != nil) != tt.wantErr {
 				t.Errorf("Batcher.Write() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
@@ -402,7 +402,7 @@ func TestBatcher_WriteTimeout(t *testing.T) {
 	// or get back all the bytes from the reader.
 	var got string
 	svc := &mock.WriteService{
-		WriteF: func(ctx context.Context, org, bucket platform.ID, r io.Reader) error {
+		WriteF: func(ctx context.Context, r io.Reader) error {
 			b, err := ioutil.ReadAll(r)
 			got = string(b)
 			return err
@@ -419,7 +419,7 @@ func TestBatcher_WriteTimeout(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
 	defer cancel()
 
-	if err := b.Write(ctx, platform.ID(1), platform.ID(2), r); err != context.DeadlineExceeded {
+	if err := b.Write(ctx, r); err != context.DeadlineExceeded {
 		t.Errorf("Batcher.Write() with timeout error = %v", err)
 	}
 
