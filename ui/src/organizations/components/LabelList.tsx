@@ -14,11 +14,15 @@ import {
 // Types
 import {LabelType} from 'src/clockface'
 
+// Decorators
+import {ErrorHandling} from 'src/shared/decorators/errors'
+
 interface Props {
   labels: LabelType[]
   emptyState: JSX.Element
 }
 
+@ErrorHandling
 export default class MemberList extends PureComponent<Props> {
   public render() {
     return (

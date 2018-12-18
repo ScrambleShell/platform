@@ -17,6 +17,9 @@ import FilterList from 'src/shared/components/Filter'
 // Types
 import {LabelType} from 'src/clockface'
 
+// Decorators
+import {ErrorHandling} from 'src/shared/decorators/errors'
+
 interface Props {
   labels: LabelType[]
 }
@@ -25,6 +28,7 @@ interface State {
   searchTerm: string
 }
 
+@ErrorHandling
 export default class Members extends PureComponent<Props, State> {
   constructor(props) {
     super(props)
