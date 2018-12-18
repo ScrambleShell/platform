@@ -2,6 +2,7 @@
 import React, {PureComponent, ChangeEvent} from 'react'
 
 // Components
+import CreateLabelOverlay from 'src/organizations/components/CreateLabelOverlay'
 import ProfilePageHeader from 'src/shared/components/profile_page/ProfilePageHeader'
 import {
   ComponentSize,
@@ -26,6 +27,7 @@ interface Props {
 
 interface State {
   searchTerm: string
+  isOverlayVisible: boolean
 }
 
 @ErrorHandling
@@ -34,12 +36,13 @@ export default class Members extends PureComponent<Props, State> {
     super(props)
     this.state = {
       searchTerm: '',
+      isOverlayVisible: false,
     }
   }
 
   public render() {
     const {labels} = this.props
-    const {searchTerm} = this.state
+    const {searchTerm, isOverlayVisible} = this.state
 
     return (
       <>
@@ -56,6 +59,7 @@ export default class Members extends PureComponent<Props, State> {
             text="Create Label"
             color={ComponentColor.Primary}
             icon={IconFont.Plus}
+            onClick={this.handleShowOverlay}
           />
         </ProfilePageHeader>
         <FilterList<LabelType>
@@ -65,8 +69,20 @@ export default class Members extends PureComponent<Props, State> {
         >
           {ls => <LabelList labels={ls} emptyState={this.emptyState} />}
         </FilterList>
+        <CreateLabelOverlay
+          isVisible={isOverlayVisible}
+          onDismiss={this.handleDismissOverlay}
+        />
       </>
     )
+  }
+
+  private handleShowOverlay = (): void => {
+    this.setState({isOverlayVisible: true})
+  }
+
+  private handleDismissOverlay = (): void => {
+    this.setState({isOverlayVisible: false})
   }
 
   private handleFilterChange = (e: ChangeEvent<HTMLInputElement>): void => {
