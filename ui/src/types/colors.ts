@@ -11,7 +11,7 @@ export interface ColorLabel {
   name: string
 }
 
-export interface ColorConfig {
+export interface ThresholdConfig {
   color: Color
   label?: string
   isDeletable?: boolean
