@@ -133,37 +133,37 @@ export const getLabels = async (org: Organization): Promise<LabelType[]> => {
   const mockLabels: LabelType[] = [
     {
       id: '0',
-      text: 'Swogglez',
+      name: 'Swogglez',
       description: 'I am an example Label',
       colorHex: '#ff0054',
     },
     {
       id: '1',
-      text: 'Top Secret',
+      name: 'Top Secret',
       description: 'Only admins can modify these resources',
       colorHex: '#4a52f4',
     },
     {
       id: '2',
-      text: 'Pineapples',
+      name: 'Pineapples',
       description: 'Pineapples are in my head',
       colorHex: '#f4c24a',
     },
     {
       id: '3',
-      text: 'SWAT',
+      name: 'SWAT',
       description: 'Boots and cats and boots and cats',
       colorHex: '#d6ff9c',
     },
     {
       id: '4',
-      text: 'the GOAT',
+      name: 'the GOAT',
       description: 'Gatsby obviously ate turnips',
       colorHex: '#17d9f0',
     },
     {
       id: '5',
-      text: 'My Spoon is Too Big',
+      name: 'My Spoon is Too Big',
       description: 'My Spooooooooon is Too Big',
       colorHex: '#27c27e',
     },

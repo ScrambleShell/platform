@@ -41,7 +41,7 @@ export default class MemberList extends PureComponent<Props> {
         <IndexList.Cell>
           <Label
             id={label.id}
-            text={label.text}
+            name={label.name}
             colorHex={label.colorHex}
             description={label.description}
             size={ComponentSize.Small}

@@ -56,7 +56,7 @@ export default class Members extends PureComponent<Props, State> {
         </ProfilePageHeader>
         <FilterList<LabelType>
           list={labels}
-          searchKeys={['text']}
+          searchKeys={['name', 'description']}
           searchTerm={searchTerm}
         >
           {ls => <LabelList labels={ls} emptyState={this.emptyState} />}
