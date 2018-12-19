@@ -1053,35 +1053,21 @@ export namespace Health {
 /**
  * 
  * @export
- * @interface InlineObject
- */
-export interface InlineObject {
-    /**
-     * 
-     * @type {string}
-     * @memberof InlineObject
-     */
-    label?: string;
-}
-
-/**
- * 
- * @export
  * @interface InlineResponse200
  */
 export interface InlineResponse200 {
-    /**
-     * 
-     * @type {Array<Label>}
-     * @memberof InlineResponse200
-     */
-    labels?: Array<Label>;
     /**
      * 
      * @type {Links}
      * @memberof InlineResponse200
      */
     links?: Links;
+    /**
+     * 
+     * @type {Array<Task>}
+     * @memberof InlineResponse200
+     */
+    tasks?: Array<Task>;
 }
 
 /**
@@ -1098,28 +1084,8 @@ export interface InlineResponse2001 {
     links?: Links;
     /**
      * 
-     * @type {Array<Task>}
-     * @memberof InlineResponse2001
-     */
-    tasks?: Array<Task>;
-}
-
-/**
- * 
- * @export
- * @interface InlineResponse2002
- */
-export interface InlineResponse2002 {
-    /**
-     * 
-     * @type {Links}
-     * @memberof InlineResponse2002
-     */
-    links?: Links;
-    /**
-     * 
      * @type {Array<Run>}
-     * @memberof InlineResponse2002
+     * @memberof InlineResponse2001
      */
     runs?: Array<Run>;
 }
@@ -1136,26 +1102,6 @@ export interface IsOnboarding {
      * @memberof IsOnboarding
      */
     allowed?: boolean;
-}
-
-/**
- * 
- * @export
- * @interface Label
- */
-export interface Label {
-    /**
-     * A six-character hex color.
-     * @type {string}
-     * @memberof Label
-     */
-    color?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof Label
-     */
-    name?: string;
 }
 
 /**
@@ -8571,164 +8517,6 @@ export const OrganizationsApiAxiosParamCreator = function (configuration?: Confi
         },
         /**
          * 
-         * @summary list all labels for a organization
-         * @param {string} orgID ID of the organization
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        orgsOrgIDLabelsGet(orgID: string, options: any = {}): RequestArgs {
-            // verify required parameter 'orgID' is not null or undefined
-            if (orgID === null || orgID === undefined) {
-                throw new RequiredError('orgID','Required parameter orgID was null or undefined when calling orgsOrgIDLabelsGet.');
-            }
-            const localVarPath = `/orgs/{orgID}/labels`
-                .replace(`{${"orgID"}}`, encodeURIComponent(String(orgID)));
-            const localVarUrlObj = url.parse(localVarPath, true);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-            const localVarRequestOptions = Object.assign({ method: 'GET' }, baseOptions, options);
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
-            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
-            delete localVarUrlObj.search;
-            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
-
-            return {
-                url: url.format(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @summary delete a label from an organization
-         * @param {string} orgID ID of the organization
-         * @param {string} label the label name
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        orgsOrgIDLabelsLabelDelete(orgID: string, label: string, options: any = {}): RequestArgs {
-            // verify required parameter 'orgID' is not null or undefined
-            if (orgID === null || orgID === undefined) {
-                throw new RequiredError('orgID','Required parameter orgID was null or undefined when calling orgsOrgIDLabelsLabelDelete.');
-            }
-            // verify required parameter 'label' is not null or undefined
-            if (label === null || label === undefined) {
-                throw new RequiredError('label','Required parameter label was null or undefined when calling orgsOrgIDLabelsLabelDelete.');
-            }
-            const localVarPath = `/orgs/{orgID}/labels/{label}`
-                .replace(`{${"orgID"}}`, encodeURIComponent(String(orgID)))
-                .replace(`{${"label"}}`, encodeURIComponent(String(label)));
-            const localVarUrlObj = url.parse(localVarPath, true);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-            const localVarRequestOptions = Object.assign({ method: 'DELETE' }, baseOptions, options);
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
-            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
-            delete localVarUrlObj.search;
-            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
-
-            return {
-                url: url.format(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @summary update a label from an organization
-         * @param {string} orgID ID of the organization
-         * @param {string} label the label name
-         * @param {Label} label label update to apply
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        orgsOrgIDLabelsLabelPatch(orgID: string, label: string, label: Label, options: any = {}): RequestArgs {
-            // verify required parameter 'orgID' is not null or undefined
-            if (orgID === null || orgID === undefined) {
-                throw new RequiredError('orgID','Required parameter orgID was null or undefined when calling orgsOrgIDLabelsLabelPatch.');
-            }
-            // verify required parameter 'label' is not null or undefined
-            if (label === null || label === undefined) {
-                throw new RequiredError('label','Required parameter label was null or undefined when calling orgsOrgIDLabelsLabelPatch.');
-            }
-            // verify required parameter 'label' is not null or undefined
-            if (label === null || label === undefined) {
-                throw new RequiredError('label','Required parameter label was null or undefined when calling orgsOrgIDLabelsLabelPatch.');
-            }
-            const localVarPath = `/orgs/{orgID}/labels/{label}`
-                .replace(`{${"orgID"}}`, encodeURIComponent(String(orgID)))
-                .replace(`{${"label"}}`, encodeURIComponent(String(label)));
-            const localVarUrlObj = url.parse(localVarPath, true);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-            const localVarRequestOptions = Object.assign({ method: 'PATCH' }, baseOptions, options);
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
-            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
-            delete localVarUrlObj.search;
-            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
-            const needsSerialization = (<any>"Label" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
-            localVarRequestOptions.data =  needsSerialization ? JSON.stringify(label || {}) : (label || "");
-
-            return {
-                url: url.format(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @summary add a label to an organization
-         * @param {string} orgID ID of the organization
-         * @param {InlineObject} [inlineObject] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        orgsOrgIDLabelsPost(orgID: string, inlineObject?: InlineObject, options: any = {}): RequestArgs {
-            // verify required parameter 'orgID' is not null or undefined
-            if (orgID === null || orgID === undefined) {
-                throw new RequiredError('orgID','Required parameter orgID was null or undefined when calling orgsOrgIDLabelsPost.');
-            }
-            const localVarPath = `/orgs/{orgID}/labels`
-                .replace(`{${"orgID"}}`, encodeURIComponent(String(orgID)));
-            const localVarUrlObj = url.parse(localVarPath, true);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-            const localVarRequestOptions = Object.assign({ method: 'POST' }, baseOptions, options);
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
-            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
-            delete localVarUrlObj.search;
-            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
-            const needsSerialization = (<any>"InlineObject" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
-            localVarRequestOptions.data =  needsSerialization ? JSON.stringify(inlineObject || {}) : (inlineObject || "");
-
-            return {
-                url: url.format(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
          * @summary List all members of an organization
          * @param {string} orgID ID of the organization
          * @param {*} [options] Override http request option.
@@ -9085,66 +8873,6 @@ export const OrganizationsApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
-         * @summary list all labels for a organization
-         * @param {string} orgID ID of the organization
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        orgsOrgIDLabelsGet(orgID: string, options?: any): (axios?: AxiosInstance, basePath?: string) => AxiosPromise<InlineResponse200> {
-            const localVarAxiosArgs = OrganizationsApiAxiosParamCreator(configuration).orgsOrgIDLabelsGet(orgID, options);
-            return (axios: AxiosInstance = globalAxios, basePath: string = BASE_PATH) => {
-                const axiosRequestArgs = Object.assign(localVarAxiosArgs.options, {url: basePath + localVarAxiosArgs.url})
-                return axios.request(axiosRequestArgs);                
-            };
-        },
-        /**
-         * 
-         * @summary delete a label from an organization
-         * @param {string} orgID ID of the organization
-         * @param {string} label the label name
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        orgsOrgIDLabelsLabelDelete(orgID: string, label: string, options?: any): (axios?: AxiosInstance, basePath?: string) => AxiosPromise<Response> {
-            const localVarAxiosArgs = OrganizationsApiAxiosParamCreator(configuration).orgsOrgIDLabelsLabelDelete(orgID, label, options);
-            return (axios: AxiosInstance = globalAxios, basePath: string = BASE_PATH) => {
-                const axiosRequestArgs = Object.assign(localVarAxiosArgs.options, {url: basePath + localVarAxiosArgs.url})
-                return axios.request(axiosRequestArgs);                
-            };
-        },
-        /**
-         * 
-         * @summary update a label from an organization
-         * @param {string} orgID ID of the organization
-         * @param {string} label the label name
-         * @param {Label} label label update to apply
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        orgsOrgIDLabelsLabelPatch(orgID: string, label: string, label: Label, options?: any): (axios?: AxiosInstance, basePath?: string) => AxiosPromise<Response> {
-            const localVarAxiosArgs = OrganizationsApiAxiosParamCreator(configuration).orgsOrgIDLabelsLabelPatch(orgID, label, label, options);
-            return (axios: AxiosInstance = globalAxios, basePath: string = BASE_PATH) => {
-                const axiosRequestArgs = Object.assign(localVarAxiosArgs.options, {url: basePath + localVarAxiosArgs.url})
-                return axios.request(axiosRequestArgs);                
-            };
-        },
-        /**
-         * 
-         * @summary add a label to an organization
-         * @param {string} orgID ID of the organization
-         * @param {InlineObject} [inlineObject] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        orgsOrgIDLabelsPost(orgID: string, inlineObject?: InlineObject, options?: any): (axios?: AxiosInstance, basePath?: string) => AxiosPromise<InlineResponse200> {
-            const localVarAxiosArgs = OrganizationsApiAxiosParamCreator(configuration).orgsOrgIDLabelsPost(orgID, inlineObject, options);
-            return (axios: AxiosInstance = globalAxios, basePath: string = BASE_PATH) => {
-                const axiosRequestArgs = Object.assign(localVarAxiosArgs.options, {url: basePath + localVarAxiosArgs.url})
-                return axios.request(axiosRequestArgs);                
-            };
-        },
-        /**
-         * 
          * @summary List all members of an organization
          * @param {string} orgID ID of the organization
          * @param {*} [options] Override http request option.
@@ -9300,50 +9028,6 @@ export const OrganizationsApiFactory = function (configuration?: Configuration, 
         },
         /**
          * 
-         * @summary list all labels for a organization
-         * @param {string} orgID ID of the organization
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        orgsOrgIDLabelsGet(orgID: string, options?: any) {
-            return OrganizationsApiFp(configuration).orgsOrgIDLabelsGet(orgID, options)(axios, basePath);
-        },
-        /**
-         * 
-         * @summary delete a label from an organization
-         * @param {string} orgID ID of the organization
-         * @param {string} label the label name
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        orgsOrgIDLabelsLabelDelete(orgID: string, label: string, options?: any) {
-            return OrganizationsApiFp(configuration).orgsOrgIDLabelsLabelDelete(orgID, label, options)(axios, basePath);
-        },
-        /**
-         * 
-         * @summary update a label from an organization
-         * @param {string} orgID ID of the organization
-         * @param {string} label the label name
-         * @param {Label} label label update to apply
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        orgsOrgIDLabelsLabelPatch(orgID: string, label: string, label: Label, options?: any) {
-            return OrganizationsApiFp(configuration).orgsOrgIDLabelsLabelPatch(orgID, label, label, options)(axios, basePath);
-        },
-        /**
-         * 
-         * @summary add a label to an organization
-         * @param {string} orgID ID of the organization
-         * @param {InlineObject} [inlineObject] 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        orgsOrgIDLabelsPost(orgID: string, inlineObject?: InlineObject, options?: any) {
-            return OrganizationsApiFp(configuration).orgsOrgIDLabelsPost(orgID, inlineObject, options)(axios, basePath);
-        },
-        /**
-         * 
          * @summary List all members of an organization
          * @param {string} orgID ID of the organization
          * @param {*} [options] Override http request option.
@@ -9470,58 +9154,6 @@ export class OrganizationsApi extends BaseAPI {
      */
     public orgsOrgIDGet(orgID: string, options?: any) {
         return OrganizationsApiFp(this.configuration).orgsOrgIDGet(orgID, options)(this.axios, this.basePath);
-    }
-
-    /**
-     * 
-     * @summary list all labels for a organization
-     * @param {string} orgID ID of the organization
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof OrganizationsApi
-     */
-    public orgsOrgIDLabelsGet(orgID: string, options?: any) {
-        return OrganizationsApiFp(this.configuration).orgsOrgIDLabelsGet(orgID, options)(this.axios, this.basePath);
-    }
-
-    /**
-     * 
-     * @summary delete a label from an organization
-     * @param {string} orgID ID of the organization
-     * @param {string} label the label name
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof OrganizationsApi
-     */
-    public orgsOrgIDLabelsLabelDelete(orgID: string, label: string, options?: any) {
-        return OrganizationsApiFp(this.configuration).orgsOrgIDLabelsLabelDelete(orgID, label, options)(this.axios, this.basePath);
-    }
-
-    /**
-     * 
-     * @summary update a label from an organization
-     * @param {string} orgID ID of the organization
-     * @param {string} label the label name
-     * @param {Label} label label update to apply
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof OrganizationsApi
-     */
-    public orgsOrgIDLabelsLabelPatch(orgID: string, label: string, label: Label, options?: any) {
-        return OrganizationsApiFp(this.configuration).orgsOrgIDLabelsLabelPatch(orgID, label, label, options)(this.axios, this.basePath);
-    }
-
-    /**
-     * 
-     * @summary add a label to an organization
-     * @param {string} orgID ID of the organization
-     * @param {InlineObject} [inlineObject] 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof OrganizationsApi
-     */
-    public orgsOrgIDLabelsPost(orgID: string, inlineObject?: InlineObject, options?: any) {
-        return OrganizationsApiFp(this.configuration).orgsOrgIDLabelsPost(orgID, inlineObject, options)(this.axios, this.basePath);
     }
 
     /**
@@ -11590,7 +11222,7 @@ export const TasksApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        tasksGet(after?: string, user?: string, org?: string, options?: any): (axios?: AxiosInstance, basePath?: string) => AxiosPromise<InlineResponse2001> {
+        tasksGet(after?: string, user?: string, org?: string, options?: any): (axios?: AxiosInstance, basePath?: string) => AxiosPromise<InlineResponse200> {
             const localVarAxiosArgs = TasksApiAxiosParamCreator(configuration).tasksGet(after, user, org, options);
             return (axios: AxiosInstance = globalAxios, basePath: string = BASE_PATH) => {
                 const axiosRequestArgs = Object.assign(localVarAxiosArgs.options, {url: basePath + localVarAxiosArgs.url})
@@ -11767,7 +11399,7 @@ export const TasksApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        tasksTaskIDRunsGet(taskID: string, after?: string, limit?: number, afterTime?: Date, beforeTime?: Date, options?: any): (axios?: AxiosInstance, basePath?: string) => AxiosPromise<InlineResponse2002> {
+        tasksTaskIDRunsGet(taskID: string, after?: string, limit?: number, afterTime?: Date, beforeTime?: Date, options?: any): (axios?: AxiosInstance, basePath?: string) => AxiosPromise<InlineResponse2001> {
             const localVarAxiosArgs = TasksApiAxiosParamCreator(configuration).tasksTaskIDRunsGet(taskID, after, limit, afterTime, beforeTime, options);
             return (axios: AxiosInstance = globalAxios, basePath: string = BASE_PATH) => {
                 const axiosRequestArgs = Object.assign(localVarAxiosArgs.options, {url: basePath + localVarAxiosArgs.url})
