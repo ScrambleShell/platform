@@ -8,12 +8,14 @@ import {
   OverlayContainer,
   OverlayBody,
   OverlayHeading,
-  ComponentStatus,
 } from 'src/clockface'
 
 // Types
 import {LabelType} from 'src/clockface'
 import {Organization} from 'src/api'
+
+// Constants
+import {validateHexCode} from 'src/organizations/constants/LabelColors'
 
 // Decorators
 import {ErrorHandling} from 'src/shared/decorators/errors'
@@ -34,11 +36,7 @@ const emptyLabel = {
 
 interface State {
   label: LabelType
-  nameInputStatus: ComponentStatus
-  nameInputErrorMessage: string
   useCustomColorHex: boolean
-  customColorHex: string
-  customColorHexErrorMessage: string
 }
 
 @ErrorHandling
@@ -48,23 +46,13 @@ class CreateLabelOverlay extends Component<Props, State> {
 
     this.state = {
       label: emptyLabel,
-      nameInputStatus: ComponentStatus.Default,
-      nameInputErrorMessage: '',
       useCustomColorHex: false,
-      customColorHex: '',
-      customColorHexErrorMessage: '',
     }
   }
 
   public render() {
     const {isVisible, onDismiss} = this.props
-    const {
-      label,
-      nameInputStatus,
-      nameInputErrorMessage,
-      useCustomColorHex,
-      customColorHexErrorMessage,
-    } = this.state
+    const {label, useCustomColorHex} = this.state
 
     return (
       <OverlayTechnology visible={isVisible}>
@@ -74,18 +62,16 @@ class CreateLabelOverlay extends Component<Props, State> {
             <LabelOverlayForm
               id={label.id}
               name={label.name}
-              nameInputStatus={nameInputStatus}
               description={label.description}
               colorHex={label.colorHex}
               onColorHexChange={this.handleColorHexChange}
               onToggleCustomColorHex={this.handleToggleCustomColorHex}
               useCustomColorHex={useCustomColorHex}
-              customColorHexErrorMessage={customColorHexErrorMessage}
-              nameInputErrorMessage={nameInputErrorMessage}
               onSubmit={this.handleSubmit}
               onCloseModal={onDismiss}
               onInputChange={this.handleInputChange}
               buttonText="Create Label"
+              isFormValid={this.isFormValid}
             />
           </OverlayBody>
         </OverlayContainer>
@@ -93,10 +79,20 @@ class CreateLabelOverlay extends Component<Props, State> {
     )
   }
 
+  private get isFormValid(): boolean {
+    const {label} = this.state
+
+    const nameIsValid = label.name !== ''
+    const colorIsValid = validateHexCode(label.colorHex) === null
+
+    return nameIsValid && colorIsValid
+  }
+
   private handleSubmit = () => {
-    const {onCreateLabel, org} = this.props
+    const {onCreateLabel, org, onDismiss} = this.props
 
     onCreateLabel(org, this.state.label)
+    onDismiss()
   }
 
   private handleInputChange = (e: ChangeEvent<HTMLInputElement>): void => {
@@ -105,22 +101,6 @@ class CreateLabelOverlay extends Component<Props, State> {
 
     if (key in this.state.label) {
       const label = {...this.state.label, [key]: value}
-
-      if (!value && key === 'name') {
-        return this.setState({
-          label,
-          nameInputStatus: ComponentStatus.Error,
-          nameInputErrorMessage: `Label ${key} cannot be empty`,
-        })
-      }
-
-      if (key === 'name') {
-        return this.setState({
-          label,
-          nameInputStatus: ComponentStatus.Valid,
-          nameInputErrorMessage: '',
-        })
-      }
 
       this.setState({
         label,
@@ -131,37 +111,11 @@ class CreateLabelOverlay extends Component<Props, State> {
   private handleColorHexChange = (colorHex: string): void => {
     const label = {...this.state.label, colorHex}
 
-    const isHexValid = this.validateColorHex(colorHex)
-
-    if (isHexValid) {
-      return this.setState({
-        label,
-        customColorHex: colorHex,
-        customColorHexErrorMessage: '',
-      })
-    }
-
-    this.setState({
-      customColorHex: colorHex,
-      customColorHexErrorMessage:
-        'Hexcodes must be 7 characters limited to A-F, 0-9, and begin with #',
-    })
+    this.setState({label})
   }
 
   private handleToggleCustomColorHex = (useCustomColorHex: boolean): void => {
     this.setState({useCustomColorHex})
-  }
-
-  private validateColorHex = (colorHex): boolean => {
-    const isValidLength = colorHex.length === 7
-    const containsValidCharacters =
-      colorHex.replace(/[ABCDEF0abcdef123456789]+/g, '') === '#'
-
-    if (!isValidLength || !containsValidCharacters) {
-      return false
-    }
-
-    return true
   }
 }
 

@@ -9,18 +9,27 @@ import {
   Button,
   ComponentColor,
   ComponentSize,
-  ComponentStatus,
   ComponentSpacer,
   ButtonType,
   Label,
   Columns,
   Alignment,
   Stack,
+  ComponentStatus,
 } from 'src/clockface'
 import LabelColorDropdown from 'src/organizations/components/LabelColorDropdown'
 
 // Constants
+import {
+  PresetLabelColors,
+  LabelColorType,
+  HEX_CODE_CHAR_LENGTH,
+  validateHexCode,
+} from 'src/organizations/constants/LabelColors'
 const MAX_LABEL_CHARS = 75
+
+// Styles
+import 'src/organizations/components/LabelOverlayForm.scss'
 
 // Decorators
 import {ErrorHandling} from 'src/shared/decorators/errors'
@@ -30,16 +39,14 @@ interface Props {
   name: string
   description: string
   colorHex: string
-  nameInputErrorMessage: string
-  customColorHexErrorMessage: string
   onSubmit: () => void
   onCloseModal: () => void
   onInputChange: (e: ChangeEvent<HTMLInputElement>) => void
   onColorHexChange: (colorHex: string) => void
   onToggleCustomColorHex: (useCustomColorHex: boolean) => void
   useCustomColorHex: boolean
-  nameInputStatus: ComponentStatus
   buttonText: string
+  isFormValid: boolean
 }
 
 @ErrorHandling
@@ -49,17 +56,14 @@ export default class BucketOverlayForm extends PureComponent<Props> {
       id,
       name,
       onSubmit,
-      colorHex,
       buttonText,
       description,
       onCloseModal,
       onInputChange,
-      nameInputStatus,
       onColorHexChange,
       useCustomColorHex,
-      nameInputErrorMessage,
       onToggleCustomColorHex,
-      customColorHexErrorMessage,
+      isFormValid,
     } = this.props
 
     return (
@@ -68,41 +72,45 @@ export default class BucketOverlayForm extends PureComponent<Props> {
           <Grid.Row>
             <Grid.Column widthXS={Columns.Twelve}>
               <Form.Element label="Preview">
-                <Form.Box>
+                <Form.Box className="label-overlay--preview">
                   <Label
                     size={ComponentSize.Small}
                     name={this.placeholderLabelName}
                     description={description}
-                    colorHex={colorHex}
+                    colorHex={this.colorHexGuard}
                     id={id}
                   />
                 </Form.Box>
               </Form.Element>
             </Grid.Column>
             <Grid.Column widthSM={Columns.Seven}>
-              <Form.Element label="Name" errorMessage={nameInputErrorMessage}>
-                <Input
-                  placeholder="Name this Label"
-                  name="name"
-                  autoFocus={true}
-                  value={name}
-                  onChange={onInputChange}
-                  status={nameInputStatus}
-                  maxLength={MAX_LABEL_CHARS}
-                />
-              </Form.Element>
+              <Form.ValidationElement
+                label="Name"
+                value={name}
+                required={true}
+                validationFunc={this.handleNameValidation}
+              >
+                {status => (
+                  <Input
+                    placeholder="Name this Label"
+                    name="name"
+                    autoFocus={true}
+                    value={name}
+                    onChange={onInputChange}
+                    status={status}
+                    maxLength={MAX_LABEL_CHARS}
+                  />
+                )}
+              </Form.ValidationElement>
             </Grid.Column>
             <Grid.Column widthSM={Columns.Five}>
-              <Form.Element
-                label="Color"
-                errorMessage={customColorHexErrorMessage}
-              >
+              <Form.Element label="Color">
                 <ComponentSpacer
                   align={Alignment.Left}
                   stackChildren={Stack.Rows}
                 >
                   <LabelColorDropdown
-                    colorHex={colorHex}
+                    colorHex={this.dropdownColorHex}
                     onChange={onColorHexChange}
                     useCustomColorHex={useCustomColorHex}
                     onToggleCustomColorHex={onToggleCustomColorHex}
@@ -116,7 +124,6 @@ export default class BucketOverlayForm extends PureComponent<Props> {
                 <Input
                   placeholder="Add a optional description"
                   name="description"
-                  autoFocus={true}
                   value={description}
                   onChange={onInputChange}
                 />
@@ -130,7 +137,15 @@ export default class BucketOverlayForm extends PureComponent<Props> {
                   titleText="Cancel creation of Label and return to list"
                   type={ButtonType.Button}
                 />
-                <Button text={buttonText} color={ComponentColor.Success} />
+                <Button
+                  text={buttonText}
+                  color={ComponentColor.Success}
+                  status={
+                    isFormValid
+                      ? ComponentStatus.Default
+                      : ComponentStatus.Disabled
+                  }
+                />
               </Form.Footer>
             </Grid.Column>
           </Grid.Row>
@@ -149,16 +164,57 @@ export default class BucketOverlayForm extends PureComponent<Props> {
     return name
   }
 
+  private get colorHexGuard(): string {
+    const {colorHex} = this.props
+
+    if (validateHexCode(colorHex)) {
+      return '#0F0E15'
+    }
+
+    return colorHex
+  }
+
+  private get dropdownColorHex(): string {
+    const {colorHex, useCustomColorHex} = this.props
+
+    if (useCustomColorHex) {
+      return PresetLabelColors.find(
+        preset => preset.type === LabelColorType.Custom
+      ).hex
+    }
+
+    return colorHex
+  }
+
+  private handleNameValidation = (name: string): string | null => {
+    if (name === '') {
+      return 'Name is required'
+    }
+
+    return null
+  }
+
   private get customColorInput(): JSX.Element {
     const {colorHex, useCustomColorHex} = this.props
 
     if (useCustomColorHex) {
       return (
-        <Input
+        <Form.ValidationElement
+          label="Enter a Hexcode"
           value={colorHex}
-          placeholder="#000000"
-          onChange={this.handleCustomColorChange}
-        />
+          validationFunc={validateHexCode}
+        >
+          {status => (
+            <Input
+              value={colorHex}
+              placeholder="#000000"
+              onChange={this.handleCustomColorChange}
+              status={status}
+              autoFocus={true}
+              maxLength={HEX_CODE_CHAR_LENGTH}
+            />
+          )}
+        </Form.ValidationElement>
       )
     }
   }

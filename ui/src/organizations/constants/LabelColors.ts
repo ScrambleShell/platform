@@ -1,5 +1,7 @@
 // Labels can use a different set of brand colors than single stats or gauges
 
+export const HEX_CODE_CHAR_LENGTH = 7
+
 export enum LabelColorType {
   Preset = 'preset',
   Custom = 'custom',
@@ -56,3 +58,25 @@ export const PresetLabelColors = [
     type: LabelColorType.Preset,
   },
 ]
+
+export const validateHexCode = (colorHex: string): string | null => {
+  const isValidLength = colorHex.length === HEX_CODE_CHAR_LENGTH
+  const containsValidCharacters =
+    colorHex.replace(/[ABCDEF0abcdef123456789]+/g, '') === '#'
+
+  const errorMessage = []
+
+  if (!containsValidCharacters) {
+    errorMessage.push('Hexcodes must begin with # and include A-F 0-9')
+  }
+
+  if (!isValidLength) {
+    errorMessage.push(`Hexcodes must be ${HEX_CODE_CHAR_LENGTH} characters`)
+  }
+
+  if (!errorMessage.length) {
+    return null
+  }
+
+  return errorMessage.join(', ')
+}
