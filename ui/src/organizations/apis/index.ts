@@ -4,7 +4,7 @@ import _ from 'lodash'
 import {orgsAPI, bucketsAPI, dashboardsAPI, taskAPI} from 'src/utils/api'
 
 // Types
-import {Bucket, Dashboard, Task, Organization, User} from 'src/api'
+import {Bucket, Dashboard, Task, Organization, User, Label} from 'src/api'
 import {LabelType} from 'src/clockface'
 
 // CRUD APIs for Organizations and Organization resources
@@ -171,3 +171,12 @@ export const getLabels = async (org: Organization): Promise<LabelType[]> => {
 
   return mockLabels
 }
+
+export const createLabel = async (org: Organization, label: Label) => {
+  return label
+}
+
+export const deleteLabel = async (
+  org: Organization,
+  label: Label
+): Promise<void> => {}

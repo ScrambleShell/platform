@@ -13,13 +13,16 @@ import {
 
 // Types
 import {LabelType} from 'src/clockface'
+import {Organization} from 'src/api'
 
 // Decorators
 import {ErrorHandling} from 'src/shared/decorators/errors'
 
 interface Props {
+  org: Organization
   isVisible: boolean
   onDismiss: () => void
+  onCreateLabel: (org: Organization, label: LabelType) => void
 }
 
 const emptyLabel = {
@@ -79,7 +82,7 @@ class CreateLabelOverlay extends Component<Props, State> {
               useCustomColorHex={useCustomColorHex}
               customColorHexErrorMessage={customColorHexErrorMessage}
               nameInputErrorMessage={nameInputErrorMessage}
-              onSubmit={() => {}}
+              onSubmit={this.handleSubmit}
               onCloseModal={onDismiss}
               onInputChange={this.handleInputChange}
               buttonText="Create Label"
@@ -88,6 +91,12 @@ class CreateLabelOverlay extends Component<Props, State> {
         </OverlayContainer>
       </OverlayTechnology>
     )
+  }
+
+  private handleSubmit = () => {
+    const {onCreateLabel, org} = this.props
+
+    onCreateLabel(org, this.state.label)
   }
 
   private handleInputChange = (e: ChangeEvent<HTMLInputElement>): void => {

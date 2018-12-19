@@ -23,7 +23,7 @@ interface Props {
 }
 
 @ErrorHandling
-export default class MemberList extends PureComponent<Props> {
+export default class LabelList extends PureComponent<Props> {
   public render() {
     return (
       <IndexList>

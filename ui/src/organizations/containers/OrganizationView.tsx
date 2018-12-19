@@ -139,7 +139,7 @@ class OrganizationView extends PureComponent<Props> {
                 >
                   {(labels, loading) => (
                     <Spinner loading={loading}>
-                      <Labels labels={labels} />
+                      <Labels labels={labels} org={org} />
                     </Spinner>
                   )}
                 </GetOrgResources>
