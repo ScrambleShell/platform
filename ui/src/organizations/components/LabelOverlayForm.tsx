@@ -3,6 +3,7 @@ import React, {PureComponent, ChangeEvent} from 'react'
 
 // Components
 import {
+  Grid,
   Form,
   Input,
   Button,
@@ -63,65 +64,77 @@ export default class BucketOverlayForm extends PureComponent<Props> {
 
     return (
       <Form onSubmit={onSubmit}>
-        <Form.Element label="Preview">
-          <Form.Box>
-            <Label
-              size={ComponentSize.Small}
-              name={this.placeholderLabelName}
-              description={description}
-              colorHex={colorHex}
-              id={id}
-            />
-          </Form.Box>
-        </Form.Element>
-        <Form.Element
-          label="Name"
-          errorMessage={nameInputErrorMessage}
-          colsSM={Columns.Seven}
-        >
-          <Input
-            placeholder="Name this Label"
-            name="name"
-            autoFocus={true}
-            value={name}
-            onChange={onInputChange}
-            status={nameInputStatus}
-            maxLength={MAX_LABEL_CHARS}
-          />
-        </Form.Element>
-        <Form.Element
-          label="Color"
-          colsSM={Columns.Five}
-          errorMessage={customColorHexErrorMessage}
-        >
-          <ComponentSpacer align={Alignment.Left} stackChildren={Stack.Rows}>
-            <LabelColorDropdown
-              colorHex={colorHex}
-              onChange={onColorHexChange}
-              useCustomColorHex={useCustomColorHex}
-              onToggleCustomColorHex={onToggleCustomColorHex}
-            />
-            {this.customColorInput}
-          </ComponentSpacer>
-        </Form.Element>
-        <Form.Element label="Description">
-          <Input
-            placeholder="Add a optional description"
-            name="description"
-            autoFocus={true}
-            value={description}
-            onChange={onInputChange}
-          />
-        </Form.Element>
-        <Form.Footer>
-          <Button
-            text="Cancel"
-            onClick={onCloseModal}
-            titleText="Cancel creation of Label and return to list"
-            type={ButtonType.Button}
-          />
-          <Button text={buttonText} color={ComponentColor.Success} />
-        </Form.Footer>
+        <Grid>
+          <Grid.Row>
+            <Grid.Column widthXS={Columns.Twelve}>
+              <Form.Element label="Preview">
+                <Form.Box>
+                  <Label
+                    size={ComponentSize.Small}
+                    name={this.placeholderLabelName}
+                    description={description}
+                    colorHex={colorHex}
+                    id={id}
+                  />
+                </Form.Box>
+              </Form.Element>
+            </Grid.Column>
+            <Grid.Column widthSM={Columns.Seven}>
+              <Form.Element label="Name" errorMessage={nameInputErrorMessage}>
+                <Input
+                  placeholder="Name this Label"
+                  name="name"
+                  autoFocus={true}
+                  value={name}
+                  onChange={onInputChange}
+                  status={nameInputStatus}
+                  maxLength={MAX_LABEL_CHARS}
+                />
+              </Form.Element>
+            </Grid.Column>
+            <Grid.Column widthSM={Columns.Five}>
+              <Form.Element
+                label="Color"
+                errorMessage={customColorHexErrorMessage}
+              >
+                <ComponentSpacer
+                  align={Alignment.Left}
+                  stackChildren={Stack.Rows}
+                >
+                  <LabelColorDropdown
+                    colorHex={colorHex}
+                    onChange={onColorHexChange}
+                    useCustomColorHex={useCustomColorHex}
+                    onToggleCustomColorHex={onToggleCustomColorHex}
+                  />
+                  {this.customColorInput}
+                </ComponentSpacer>
+              </Form.Element>
+            </Grid.Column>
+            <Grid.Column widthXS={Columns.Twelve}>
+              <Form.Element label="Description">
+                <Input
+                  placeholder="Add a optional description"
+                  name="description"
+                  autoFocus={true}
+                  value={description}
+                  onChange={onInputChange}
+                />
+              </Form.Element>
+            </Grid.Column>
+            <Grid.Column widthXS={Columns.Twelve}>
+              <Form.Footer>
+                <Button
+                  text="Cancel"
+                  onClick={onCloseModal}
+                  titleText="Cancel creation of Label and return to list"
+                  type={ButtonType.Button}
+                />
+                <Button text={buttonText} color={ComponentColor.Success} />
+              </Form.Footer>
+            </Grid.Column>
+          </Grid.Row>
+        </Grid>
       </Form>
     )
   }
