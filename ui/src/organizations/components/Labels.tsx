@@ -117,12 +117,25 @@ export default class Labels extends PureComponent<Props, State> {
     this.setState({labelTypes})
   }
 
+  private handleUpdateLabel = async (updatedLabel: LabelType) => {
+    const label = await updateLabel(updatedLabel)
+    const labels = this.state.labels.map(l => {
+      if (l.id === label.id) {
+        return label
+      }
+
+      return l
+    })
+
+    this.setState({labels})
+  }
+
   private labelTypes(labels: Label[]): LabelType[] {
     return labels.map(label => ({
       id: label.name,
       name: label.name,
       description: '',
-      colorHex: label.color,
+      colorHex: label.colorHex,
       onDelete: this.handleDelete,
     }))
   }
