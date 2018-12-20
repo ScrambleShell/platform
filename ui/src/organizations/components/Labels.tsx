@@ -11,6 +11,7 @@ import {
   Input,
   Button,
   ComponentColor,
+  InputType,
 } from 'src/clockface'
 import LabelList from 'src/organizations/components/LabelList'
 import FilterList from 'src/shared/components/Filter'
@@ -20,7 +21,7 @@ import {createLabel, deleteLabel, updateLabel} from 'src/organizations/apis'
 
 // Types
 import {LabelType} from 'src/clockface'
-import {Label, Organization} from 'src/api'
+import {Label, Organization, LabelProperties} from 'src/api'
 
 // Decorators
 import {ErrorHandling} from 'src/shared/decorators/errors'
@@ -58,6 +59,7 @@ export default class Labels extends PureComponent<Props, State> {
           <Input
             icon={IconFont.Search}
             widthPixels={290}
+            type={InputType.Text}
             value={searchTerm}
             onBlur={this.handleFilterBlur}
             onChange={this.handleFilterChange}
@@ -115,23 +117,21 @@ export default class Labels extends PureComponent<Props, State> {
   ) => {
     const newLabel = await createLabel(org, {
       name: labelType.name,
-      color: labelType.colorHex,
-      description: labelType.description,
+      properties: this.labelProperties(labelType),
     })
     const labelTypes = this.labelTypes([...this.props.labels, newLabel])
     this.setState({labelTypes})
   }
 
   private handleUpdateLabel = async (labelType: LabelType) => {
-    await updateLabel(this.props.org, {
+    const label = await updateLabel(this.props.org, {
       name: labelType.name,
-      color: labelType.colorHex,
-      description: labelType.description,
+      properties: this.labelProperties(labelType),
     })
 
     const labelTypes = this.state.labelTypes.map(l => {
       if (l.id === labelType.id) {
-        return labelType
+        return this.labelType(label)
       }
 
       return l
@@ -141,13 +141,19 @@ export default class Labels extends PureComponent<Props, State> {
   }
 
   private labelTypes(labels: Label[]): LabelType[] {
-    return labels.map(label => ({
+    return labels.map(this.labelType)
+  }
+
+  private labelType(label: Label): LabelType {
+    const {properties} = label
+
+    return {
       id: label.name,
       name: label.name,
-      description: label.description,
-      colorHex: label.color,
+      description: properties.description,
+      colorHex: properties.color,
       onDelete: this.handleDelete,
-    }))
+    }
   }
 
   private handleDelete = async (name: string) => {
@@ -158,6 +164,13 @@ export default class Labels extends PureComponent<Props, State> {
     const labelTypes = this.state.labelTypes.filter(l => l.id !== name)
 
     this.setState({labelTypes})
+  }
+
+  private labelProperties(labelType: LabelType): LabelProperties {
+    return {
+      description: labelType.description,
+      color: labelType.colorHex,
+    }
   }
 
   private get emptyState(): JSX.Element {

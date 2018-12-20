@@ -7,7 +7,6 @@ import {OverlayContainer, OverlayBody, OverlayHeading} from 'src/clockface'
 
 // Types
 import {LabelType} from 'src/clockface'
-import {Organization} from 'src/api'
 
 // Constants
 import {validateHexCode} from 'src/organizations/constants/LabelColors'

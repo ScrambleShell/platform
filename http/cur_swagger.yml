@@ -5482,11 +5482,19 @@ components:
       properties:
         name:
           type: string
+        properties:
+          $ref: "#/components/schemas/LabelProperties"
+      required:
+        - properties
+        - name
+    LabelProperties:
+      type: object
+      properties:
         color:
           type: string
         description:
           type: string
       required:
         - color
-        - name
+        - description
       

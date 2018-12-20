@@ -1,11 +1,7 @@
-// Libraries
-import _ from 'lodash'
-
 import {orgsAPI, bucketsAPI, dashboardsAPI, taskAPI} from 'src/utils/api'
 
 // Types
 import {Bucket, Dashboard, Task, Organization, User, Label} from 'src/api'
-import {LabelType} from 'src/clockface'
 
 // CRUD APIs for Organizations and Organization resources
 // i.e. Organization Members, Buckets, Dashboards etc
@@ -133,33 +129,45 @@ export const getLabels = async (__: Organization): Promise<Label[]> => {
   const mockLabels: Label[] = [
     {
       name: 'Swogglez',
-      description: 'I am an example Label',
-      color: '#ff0054',
+      properties: {
+        description: 'I am an example Label',
+        color: '#ff0054',
+      },
     },
     {
       name: 'Top Secret',
-      description: 'Only admins can modify these resources',
-      color: '#4a52f4',
+      properties: {
+        description: 'Only admins can modify these resources',
+        color: '#4a52f4',
+      },
     },
     {
       name: 'Pineapples',
-      description: 'Pineapples are in my head',
-      color: '#f4c24a',
+      properties: {
+        description: 'Pineapples are in my head',
+        color: '#f4c24a',
+      },
     },
     {
       name: 'SWAT',
-      description: 'Boots and cats and boots and cats',
-      color: '#d6ff9c',
+      properties: {
+        description: 'Boots and cats and boots and cats',
+        color: '#d6ff9c',
+      },
     },
     {
       name: 'the GOAT',
-      description: 'Gatsby obviously ate turnips',
-      color: '#17d9f0',
+      properties: {
+        description: 'Gatsby obviously ate turnips',
+        color: '#17d9f0',
+      },
     },
     {
       name: 'My Spoon is Too Big',
-      description: 'My Spooooooooon is Too Big',
-      color: '#27c27e',
+      properties: {
+        description: 'My Spooooooooon is Too Big',
+        color: '#27c27e',
+      },
     },
   ]
 
