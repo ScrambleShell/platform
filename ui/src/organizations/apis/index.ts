@@ -127,56 +127,60 @@ export const getTasks = async (org: Organization): Promise<Task[]> => {
   }
 }
 
-export const getLabels = async (org: Organization): Promise<LabelType[]> => {
+export const getLabels = async (__: Organization): Promise<Label[]> => {
   // Use try catch when accessing the actual API
   // TODO: Delete this silly mocks
-  const mockLabels: LabelType[] = [
+  const mockLabels: Label[] = [
     {
-      id: '0',
       name: 'Swogglez',
       description: 'I am an example Label',
-      colorHex: '#ff0054',
+      color: '#ff0054',
     },
     {
-      id: '1',
       name: 'Top Secret',
       description: 'Only admins can modify these resources',
-      colorHex: '#4a52f4',
+      color: '#4a52f4',
     },
     {
-      id: '2',
       name: 'Pineapples',
       description: 'Pineapples are in my head',
-      colorHex: '#f4c24a',
+      color: '#f4c24a',
     },
     {
-      id: '3',
       name: 'SWAT',
       description: 'Boots and cats and boots and cats',
-      colorHex: '#d6ff9c',
+      color: '#d6ff9c',
     },
     {
-      id: '4',
       name: 'the GOAT',
       description: 'Gatsby obviously ate turnips',
-      colorHex: '#17d9f0',
+      color: '#17d9f0',
     },
     {
-      id: '5',
       name: 'My Spoon is Too Big',
       description: 'My Spooooooooon is Too Big',
-      colorHex: '#27c27e',
+      color: '#27c27e',
     },
   ]
 
   return mockLabels
 }
 
-export const createLabel = async (org: Organization, label: Label) => {
+export const createLabel = async (
+  __: Organization,
+  label: Label
+): Promise<Label> => {
   return label
 }
 
 export const deleteLabel = async (
-  org: Organization,
-  label: Label
+  __: Organization,
+  ___: Label
 ): Promise<void> => {}
+
+export const updateLabel = async (
+  __: Organization,
+  label: Label
+): Promise<Label> => {
+  return label
+}

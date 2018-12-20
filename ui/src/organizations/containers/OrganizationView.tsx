@@ -31,8 +31,7 @@ import GetOrgResources from 'src/organizations/components/GetOrgResources'
 
 // Types
 import {AppState, Dashboard} from 'src/types/v2'
-import {LabelType} from 'src/clockface'
-import {User, Bucket, Organization, Task} from 'src/api'
+import {User, Bucket, Organization, Task, Label} from 'src/api'
 
 // Decorators
 import {ErrorHandling} from 'src/shared/decorators/errors'
@@ -133,7 +132,7 @@ class OrganizationView extends PureComponent<Props> {
                 url="labels_tab"
                 title="Labels"
               >
-                <GetOrgResources<LabelType[]>
+                <GetOrgResources<Label[]>
                   organization={org}
                   fetcher={getLabels}
                 >

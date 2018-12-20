@@ -64,16 +64,18 @@ class LabelColorDropdown extends Component<Props> {
   private get selectedColorID(): string {
     const {colorHex, useCustomColorHex} = this.props
 
-    const {id} = PresetLabelColors.find(preset => preset.hex === colorHex)
+    const foundPreset = PresetLabelColors.find(
+      preset => preset.hex === colorHex
+    )
 
-    if (useCustomColorHex) {
+    if (useCustomColorHex || !foundPreset) {
       const customColor = PresetLabelColors.find(
         preset => preset.type === LabelColorType.Custom
       )
       return customColor.id
     }
 
-    return id
+    return foundPreset.id
   }
 
   private handleChange = (color: LabelColor): void => {

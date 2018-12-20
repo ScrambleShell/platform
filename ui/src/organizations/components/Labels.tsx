@@ -16,7 +16,7 @@ import LabelList from 'src/organizations/components/LabelList'
 import FilterList from 'src/shared/components/Filter'
 
 // API
-import {createLabel, deleteLabel} from 'src/organizations/apis'
+import {createLabel, deleteLabel, updateLabel} from 'src/organizations/apis'
 
 // Types
 import {LabelType} from 'src/clockface'
@@ -44,7 +44,7 @@ export default class Labels extends PureComponent<Props, State> {
     this.state = {
       searchTerm: '',
       isOverlayVisible: false,
-      labelTypes: this.labelTypes(props.labels),
+      labelTypes: this.labelTypes(this.props.labels),
     }
   }
 
@@ -75,7 +75,13 @@ export default class Labels extends PureComponent<Props, State> {
           searchKeys={['name', 'description']}
           searchTerm={searchTerm}
         >
-          {ls => <LabelList labels={ls} emptyState={this.emptyState} />}
+          {ls => (
+            <LabelList
+              labels={ls}
+              emptyState={this.emptyState}
+              onUpdateLabel={this.handleUpdateLabel}
+            />
+          )}
         </FilterList>
         <CreateLabelOverlay
           org={org}
@@ -107,45 +113,49 @@ export default class Labels extends PureComponent<Props, State> {
     org: Organization,
     labelType: LabelType
   ) => {
-    const label: Label = {
+    const newLabel = await createLabel(org, {
       name: labelType.name,
       color: labelType.colorHex,
-    }
-
-    const newLabel = await createLabel(org, label)
-    const labelTypes = this.labelTypes([...this.state.labelTypes, newLabel])
+      description: labelType.description,
+    })
+    const labelTypes = this.labelTypes([...this.props.labels, newLabel])
     this.setState({labelTypes})
   }
 
-  private handleUpdateLabel = async (updatedLabel: LabelType) => {
-    const label = await updateLabel(updatedLabel)
-    const labels = this.state.labels.map(l => {
-      if (l.id === label.id) {
-        return label
+  private handleUpdateLabel = async (labelType: LabelType) => {
+    await updateLabel(this.props.org, {
+      name: labelType.name,
+      color: labelType.colorHex,
+      description: labelType.description,
+    })
+
+    const labelTypes = this.state.labelTypes.map(l => {
+      if (l.id === labelType.id) {
+        return labelType
       }
 
       return l
     })
 
-    this.setState({labels})
+    this.setState({labelTypes})
   }
 
   private labelTypes(labels: Label[]): LabelType[] {
     return labels.map(label => ({
       id: label.name,
       name: label.name,
-      description: '',
-      colorHex: label.colorHex,
+      description: label.description,
+      colorHex: label.color,
       onDelete: this.handleDelete,
     }))
   }
 
-  private handleDelete = async (id: string) => {
+  private handleDelete = async (name: string) => {
     const {org, labels} = this.props
-    const label = labels.find(label => label.name === id)
+    const label = labels.find(label => label.name === name)
 
     await deleteLabel(org, label)
-    const labelTypes = this.state.labelTypes.filter(l => l.id !== id)
+    const labelTypes = this.state.labelTypes.filter(l => l.id !== name)
 
     this.setState({labelTypes})
   }

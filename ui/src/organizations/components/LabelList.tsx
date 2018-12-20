@@ -2,16 +2,9 @@
 import React, {PureComponent} from 'react'
 
 // Components
-import {
-  IndexList,
-  Label,
-  ComponentSize,
-  Button,
-  ComponentColor,
-  Alignment,
-  OverlayTechnology,
-} from 'src/clockface'
+import {IndexList, OverlayTechnology} from 'src/clockface'
 import UpdateLabelOverlay from 'src/organizations/components/UpdateLabelOverlay'
+import LabelRow from 'src/organizations/components/LabelRow'
 
 // Types
 import {LabelType} from 'src/clockface'
@@ -68,26 +61,13 @@ export default class LabelList extends PureComponent<Props, State> {
 
   private get rows(): JSX.Element[] {
     return this.props.labels.map(label => (
-      <IndexList.Row key={label.id}>
-        <IndexList.Cell>
-          <Label
-            id={label.id}
-            name={label.name}
-            colorHex={label.colorHex}
-            description={label.description}
-            size={ComponentSize.Small}
-            onClick={this.handleStartEdit}
-          />
-        </IndexList.Cell>
-        <IndexList.Cell>{label.description}</IndexList.Cell>
-        <IndexList.Cell revealOnHover={true} alignment={Alignment.Right}>
-          <Button
-            text="Delete"
-            color={ComponentColor.Danger}
-            size={ComponentSize.ExtraSmall}
-          />
-        </IndexList.Cell>
-      </IndexList.Row>
+      <LabelRow
+        key={label.id}
+        label={{
+          ...label,
+          onClick: this.handleStartEdit,
+        }}
+      />
     ))
   }
 
