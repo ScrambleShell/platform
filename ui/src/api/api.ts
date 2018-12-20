@@ -1105,6 +1105,32 @@ export interface IsOnboarding {
 }
 
 /**
+ * 
+ * @export
+ * @interface Label
+ */
+export interface Label {
+    /**
+     * 
+     * @type {string}
+     * @memberof Label
+     */
+    color: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Label
+     */
+    description?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof Label
+     */
+    name: string;
+}
+
+/**
  * flux query to be analyzed.
  * @export
  * @interface LanguageRequest

@@ -5473,3 +5473,20 @@ components:
           enum:
             - unhealthy
             - healthy
+    Labels:
+      type: array
+      items:
+        $ref: "#/components/schemas/Label"
+    Label:
+      type: object
+      properties:
+        name:
+          type: string
+        color:
+          type: string
+        description:
+          type: string
+      required:
+        - color
+        - name
+      
