@@ -892,7 +892,7 @@ func KVConcurrentUpdate(
 						return err
 					}
 
-					deadline := time.Now().Add(1 * time.Second)
+					deadline := time.Now().Add(10 * time.Second)
 					var returnErr error
 					for {
 						if time.Now().After(deadline) {
