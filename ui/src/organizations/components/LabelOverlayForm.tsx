@@ -24,6 +24,7 @@ import LabelColorDropdown from 'src/organizations/components/LabelColorDropdown'
 import {
   CUSTOM_LABEL,
   HEX_CODE_CHAR_LENGTH,
+  INPUT_ERROR_COLOR,
 } from 'src/organizations/constants/LabelColors'
 const MAX_LABEL_CHARS = 75
 
@@ -173,7 +174,7 @@ export default class LabelOverlayForm extends PureComponent<Props> {
     const {colorHex} = this.props
 
     if (validateHexCode(colorHex)) {
-      return '#0F0E15'
+      return INPUT_ERROR_COLOR
     }
 
     return colorHex

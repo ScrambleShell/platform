@@ -57,3 +57,5 @@ export const PRESET_LABEL_COLORS: LabelColor[] = [
     type: LabelColorType.Preset,
   },
 ]
+
+export const INPUT_ERROR_COLOR = '#0F0E15'
