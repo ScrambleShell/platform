@@ -197,27 +197,29 @@ export default class LabelOverlayForm extends PureComponent<Props> {
   private get customColorInput(): JSX.Element {
     const {colorHex, useCustomColorHex} = this.props
 
-    if (useCustomColorHex) {
-      return (
-        <Form.ValidationElement
-          label="Enter a Hexcode"
-          value={colorHex}
-          validationFunc={validateHexCode}
-        >
-          {status => (
-            <Input
-              type={InputType.Text}
-              value={colorHex}
-              placeholder="#000000"
-              onChange={this.handleCustomColorChange}
-              status={status}
-              autoFocus={true}
-              maxLength={HEX_CODE_CHAR_LENGTH}
-            />
-          )}
-        </Form.ValidationElement>
-      )
+    if (!useCustomColorHex) {
+      return null
     }
+
+    return (
+      <Form.ValidationElement
+        label="Enter a Hexcode"
+        value={colorHex}
+        validationFunc={validateHexCode}
+      >
+        {status => (
+          <Input
+            type={InputType.Text}
+            value={colorHex}
+            placeholder="#000000"
+            onChange={this.handleCustomColorChange}
+            status={status}
+            autoFocus={true}
+            maxLength={HEX_CODE_CHAR_LENGTH}
+          />
+        )}
+      </Form.ValidationElement>
+    )
   }
 
   private handleCustomColorChange = (
