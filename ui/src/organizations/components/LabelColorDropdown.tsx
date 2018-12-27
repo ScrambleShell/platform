@@ -6,10 +6,12 @@ import {Dropdown, DropdownMenuColors} from 'src/clockface'
 
 // Constants
 import {
-  PresetLabelColors,
-  LabelColor,
-  LabelColorType,
+  PRESET_LABEL_COLORS,
+  CUSTOM_LABEL,
 } from 'src/organizations/constants/LabelColors'
+
+// Types
+import {LabelColor, LabelColorType} from 'src/types/colors'
 
 // Styles
 import 'src/organizations/components/LabelColorDropdown.scss'
@@ -33,14 +35,14 @@ class LabelColorDropdown extends Component<Props> {
         onChange={this.handleChange}
         menuColor={DropdownMenuColors.Onyx}
       >
-        {PresetLabelColors.map(preset => {
+        {PRESET_LABEL_COLORS.map(preset => {
           if (preset.type === LabelColorType.Preset) {
             return (
               <Dropdown.Item id={preset.id} key={preset.id} value={preset}>
                 <div className="label-colors--item">
                   <div
                     className="label-colors--swatch"
-                    style={{backgroundColor: preset.hex}}
+                    style={{backgroundColor: preset.colorHex}}
                   />
                   {preset.name}
                 </div>
@@ -64,15 +66,12 @@ class LabelColorDropdown extends Component<Props> {
   private get selectedColorID(): string {
     const {colorHex, useCustomColorHex} = this.props
 
-    const foundPreset = PresetLabelColors.find(
-      preset => preset.hex === colorHex
+    const foundPreset = PRESET_LABEL_COLORS.find(
+      preset => preset.colorHex === colorHex
     )
 
     if (useCustomColorHex || !foundPreset) {
-      const customColor = PresetLabelColors.find(
-        preset => preset.type === LabelColorType.Custom
-      )
-      return customColor.id
+      return CUSTOM_LABEL.id
     }
 
     return foundPreset.id
@@ -80,11 +79,11 @@ class LabelColorDropdown extends Component<Props> {
 
   private handleChange = (color: LabelColor): void => {
     const {onChange, onToggleCustomColorHex} = this.props
-    const {hex, type} = color
+    const {colorHex, type} = color
 
     if (type === LabelColorType.Preset) {
       onToggleCustomColorHex(false)
-      onChange(hex)
+      onChange(colorHex)
     } else if (type === LabelColorType.Custom) {
       onToggleCustomColorHex(true)
     }

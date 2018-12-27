@@ -16,17 +16,19 @@ import {
   Alignment,
   Stack,
   ComponentStatus,
+  InputType,
 } from 'src/clockface'
 import LabelColorDropdown from 'src/organizations/components/LabelColorDropdown'
 
 // Constants
 import {
-  PresetLabelColors,
-  LabelColorType,
+  CUSTOM_LABEL,
   HEX_CODE_CHAR_LENGTH,
-  validateHexCode,
 } from 'src/organizations/constants/LabelColors'
 const MAX_LABEL_CHARS = 75
+
+// Utils
+import {validateHexCode} from 'src/organizations/utils/labels'
 
 // Styles
 import 'src/organizations/components/LabelOverlayForm.scss'
@@ -44,13 +46,14 @@ interface Props {
   onInputChange: (e: ChangeEvent<HTMLInputElement>) => void
   onColorHexChange: (colorHex: string) => void
   onToggleCustomColorHex: (useCustomColorHex: boolean) => void
+  onNameValidation: (name: string) => string | null
   useCustomColorHex: boolean
   buttonText: string
   isFormValid: boolean
 }
 
 @ErrorHandling
-export default class BucketOverlayForm extends PureComponent<Props> {
+export default class LabelOverlayForm extends PureComponent<Props> {
   public render() {
     const {
       id,
@@ -92,6 +95,7 @@ export default class BucketOverlayForm extends PureComponent<Props> {
               >
                 {status => (
                   <Input
+                    type={InputType.Text}
                     placeholder="Name this Label"
                     name="name"
                     autoFocus={true}
@@ -122,6 +126,7 @@ export default class BucketOverlayForm extends PureComponent<Props> {
             <Grid.Column widthXS={Columns.Twelve}>
               <Form.Element label="Description">
                 <Input
+                  type={InputType.Text}
                   placeholder="Add a optional description"
                   name="description"
                   value={description}
@@ -178,20 +183,14 @@ export default class BucketOverlayForm extends PureComponent<Props> {
     const {colorHex, useCustomColorHex} = this.props
 
     if (useCustomColorHex) {
-      return PresetLabelColors.find(
-        preset => preset.type === LabelColorType.Custom
-      ).hex
+      return CUSTOM_LABEL.colorHex
     }
 
     return colorHex
   }
 
   private handleNameValidation = (name: string): string | null => {
-    if (name === '') {
-      return 'Name is required'
-    }
-
-    return null
+    return this.props.onNameValidation(name)
   }
 
   private get customColorInput(): JSX.Element {
@@ -206,6 +205,7 @@ export default class BucketOverlayForm extends PureComponent<Props> {
         >
           {status => (
             <Input
+              type={InputType.Text}
               value={colorHex}
               placeholder="#000000"
               onChange={this.handleCustomColorChange}

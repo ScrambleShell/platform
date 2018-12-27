@@ -5,11 +5,11 @@ import React, {Component, ChangeEvent} from 'react'
 import LabelOverlayForm from 'src/organizations/components/LabelOverlayForm'
 import {OverlayContainer, OverlayBody, OverlayHeading} from 'src/clockface'
 
+// Utils
+import {validateHexCode} from 'src/organizations/utils/labels'
+
 // Types
 import {LabelType} from 'src/clockface'
-
-// Constants
-import {validateHexCode} from 'src/organizations/constants/LabelColors'
 
 // Decorators
 import {ErrorHandling} from 'src/shared/decorators/errors'
@@ -18,6 +18,7 @@ interface Props {
   label: LabelType
   onDismiss: () => void
   onUpdateLabel: (label: LabelType) => Promise<void>
+  onNameValidation: (name: string) => string | null
 }
 
 interface State {
@@ -37,7 +38,7 @@ class UpdateLabelOverlay extends Component<Props, State> {
   }
 
   public render() {
-    const {onDismiss} = this.props
+    const {onDismiss, onNameValidation} = this.props
     const {label, useCustomColorHex} = this.state
 
     return (
@@ -57,6 +58,7 @@ class UpdateLabelOverlay extends Component<Props, State> {
             onInputChange={this.handleInputChange}
             buttonText="Save Changes"
             isFormValid={this.isFormValid}
+            onNameValidation={onNameValidation}
           />
         </OverlayBody>
       </OverlayContainer>
@@ -66,7 +68,7 @@ class UpdateLabelOverlay extends Component<Props, State> {
   private get isFormValid(): boolean {
     const {label} = this.state
 
-    const nameIsValid = label.name !== ''
+    const nameIsValid = this.props.onNameValidation(label.name) === null
     const colorIsValid = validateHexCode(label.colorHex) === null
 
     return nameIsValid && colorIsValid

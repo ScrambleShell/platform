@@ -1,5 +1,6 @@
 // Libraries
 import React, {PureComponent, ChangeEvent} from 'react'
+import {connect} from 'react-redux'
 
 // Components
 import CreateLabelOverlay from 'src/organizations/components/CreateLabelOverlay'
@@ -19,6 +20,19 @@ import FilterList from 'src/shared/components/Filter'
 // API
 import {createLabel, deleteLabel, updateLabel} from 'src/organizations/apis'
 
+// Actions
+import {notify as notifyAction} from 'src/shared/actions/notifications'
+
+// Utils
+import {validateLabelName} from 'src/organizations/utils/labels'
+
+// Constants
+import {
+  labelDeleteFailed,
+  labelCreateFailed,
+  labelUpdateFailed,
+} from 'src/shared/copy/v2/notifications'
+
 // Types
 import {LabelType} from 'src/clockface'
 import {Label, Organization, LabelProperties} from 'src/api'
@@ -26,7 +40,7 @@ import {Label, Organization, LabelProperties} from 'src/api'
 // Decorators
 import {ErrorHandling} from 'src/shared/decorators/errors'
 
-interface Props {
+interface PassedProps {
   labels: Label[]
   org: Organization
 }
@@ -37,8 +51,14 @@ interface State {
   labelTypes: LabelType[]
 }
 
+interface DispatchProps {
+  notify: typeof notifyAction
+}
+
+type Props = DispatchProps & PassedProps
+
 @ErrorHandling
-export default class Labels extends PureComponent<Props, State> {
+class Labels extends PureComponent<Props, State> {
   constructor(props) {
     super(props)
 
@@ -90,6 +110,7 @@ export default class Labels extends PureComponent<Props, State> {
           isVisible={isOverlayVisible}
           onDismiss={this.handleDismissOverlay}
           onCreateLabel={this.handleCreateLabel}
+          onNameValidation={this.handleNameValidation}
         />
       </>
     )
@@ -115,36 +136,49 @@ export default class Labels extends PureComponent<Props, State> {
     org: Organization,
     labelType: LabelType
   ) => {
-    const newLabel = await createLabel(org, {
-      name: labelType.name,
-      properties: this.labelProperties(labelType),
-    })
-    const labelTypes = this.labelTypes([...this.props.labels, newLabel])
-    this.setState({labelTypes})
+    try {
+      const newLabel = await createLabel(org, {
+        name: labelType.name,
+        properties: this.labelProperties(labelType),
+      })
+      const labelTypes = [...this.state.labelTypes, this.labelType(newLabel)]
+      this.setState({labelTypes})
+    } catch (error) {
+      console.error(error)
+      this.props.notify(labelCreateFailed())
+    }
   }
 
   private handleUpdateLabel = async (labelType: LabelType) => {
-    const label = await updateLabel(this.props.org, {
-      name: labelType.name,
-      properties: this.labelProperties(labelType),
-    })
+    try {
+      const label = await updateLabel(this.props.org, {
+        name: labelType.name,
+        properties: this.labelProperties(labelType),
+      })
 
-    const labelTypes = this.state.labelTypes.map(l => {
-      if (l.id === labelType.id) {
-        return this.labelType(label)
-      }
+      const labelTypes = this.state.labelTypes.map(l => {
+        if (l.id === labelType.id) {
+          return this.labelType(label)
+        }
 
-      return l
-    })
+        return l
+      })
 
-    this.setState({labelTypes})
+      this.setState({labelTypes})
+    } catch (error) {
+      this.props.notify(labelUpdateFailed())
+    }
+  }
+
+  private handleNameValidation = (name: string): string | null => {
+    return validateLabelName(this.state.labelTypes, name)
   }
 
   private labelTypes(labels: Label[]): LabelType[] {
     return labels.map(this.labelType)
   }
 
-  private labelType(label: Label): LabelType {
+  private labelType = (label: Label): LabelType => {
     const {properties} = label
 
     return {
@@ -160,10 +194,14 @@ export default class Labels extends PureComponent<Props, State> {
     const {org, labels} = this.props
     const label = labels.find(label => label.name === name)
 
-    await deleteLabel(org, label)
-    const labelTypes = this.state.labelTypes.filter(l => l.id !== name)
+    try {
+      await deleteLabel(org, label)
+      const labelTypes = this.state.labelTypes.filter(l => l.id !== name)
 
-    this.setState({labelTypes})
+      this.setState({labelTypes})
+    } catch (error) {
+      this.props.notify(labelDeleteFailed())
+    }
   }
 
   private labelProperties(labelType: LabelType): LabelProperties {
@@ -189,3 +227,12 @@ export default class Labels extends PureComponent<Props, State> {
     )
   }
 }
+
+const mdtp: DispatchProps = {
+  notify: notifyAction,
+}
+
+export default connect(
+  null,
+  mdtp
+)(Labels)

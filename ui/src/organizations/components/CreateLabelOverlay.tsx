@@ -10,12 +10,15 @@ import {
   OverlayHeading,
 } from 'src/clockface'
 
+// Utils
+import {validateHexCode} from 'src/organizations/utils/labels'
+
 // Types
 import {LabelType} from 'src/clockface'
 import {Organization} from 'src/api'
 
 // Constants
-import {validateHexCode} from 'src/organizations/constants/LabelColors'
+import {EMPTY_LABEL} from 'src/organizations/constants/LabelColors'
 
 // Decorators
 import {ErrorHandling} from 'src/shared/decorators/errors'
@@ -25,14 +28,8 @@ interface Props {
   isVisible: boolean
   onDismiss: () => void
   onCreateLabel: (org: Organization, label: LabelType) => void
+  onNameValidation: (name: string) => string | null
 }
-
-const emptyLabel = {
-  id: 'newLabel',
-  name: '',
-  description: '',
-  colorHex: '#326BBA',
-} as LabelType
 
 interface State {
   label: LabelType
@@ -41,17 +38,13 @@ interface State {
 
 @ErrorHandling
 class CreateLabelOverlay extends Component<Props, State> {
-  constructor(props: Props) {
-    super(props)
-
-    this.state = {
-      label: emptyLabel,
-      useCustomColorHex: false,
-    }
+  public state: State = {
+    label: EMPTY_LABEL,
+    useCustomColorHex: false,
   }
 
   public render() {
-    const {isVisible, onDismiss} = this.props
+    const {isVisible, onDismiss, onNameValidation} = this.props
     const {label, useCustomColorHex} = this.state
 
     return (
@@ -72,6 +65,7 @@ class CreateLabelOverlay extends Component<Props, State> {
               onInputChange={this.handleInputChange}
               buttonText="Create Label"
               isFormValid={this.isFormValid}
+              onNameValidation={onNameValidation}
             />
           </OverlayBody>
         </OverlayContainer>
@@ -82,7 +76,7 @@ class CreateLabelOverlay extends Component<Props, State> {
   private get isFormValid(): boolean {
     const {label} = this.state
 
-    const nameIsValid = label.name !== ''
+    const nameIsValid = this.props.onNameValidation(label.name) === null
     const colorIsValid = validateHexCode(label.colorHex) === null
 
     return nameIsValid && colorIsValid
@@ -91,8 +85,20 @@ class CreateLabelOverlay extends Component<Props, State> {
   private handleSubmit = () => {
     const {onCreateLabel, org, onDismiss} = this.props
 
-    onCreateLabel(org, this.state.label)
-    onDismiss()
+    try {
+      onCreateLabel(org, this.state.label)
+      // clear form on successful submit
+      this.resetForm()
+    } finally {
+      onDismiss()
+    }
+  }
+
+  private resetForm() {
+    this.setState({
+      label: EMPTY_LABEL,
+      useCustomColorHex: false,
+    })
   }
 
   private handleInputChange = (e: ChangeEvent<HTMLInputElement>): void => {

@@ -18,3 +18,15 @@ export interface ThresholdConfig {
   isBase?: boolean
   disableColor?: boolean
 }
+
+export enum LabelColorType {
+  Preset = 'preset',
+  Custom = 'custom',
+}
+
+export interface LabelColor {
+  id: string
+  colorHex: string
+  name: string
+  type: LabelColorType
+}

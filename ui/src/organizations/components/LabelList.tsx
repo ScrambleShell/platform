@@ -6,6 +6,9 @@ import {IndexList, OverlayTechnology} from 'src/clockface'
 import UpdateLabelOverlay from 'src/organizations/components/UpdateLabelOverlay'
 import LabelRow from 'src/organizations/components/LabelRow'
 
+// Utils
+import {validateLabelName} from 'src/organizations/utils/labels'
+
 // Types
 import {LabelType} from 'src/clockface'
 import {OverlayState} from 'src/types/v2'
@@ -26,13 +29,9 @@ interface State {
 
 @ErrorHandling
 export default class LabelList extends PureComponent<Props, State> {
-  constructor(props: Props) {
-    super(props)
-
-    this.state = {
-      labelID: null,
-      overlayState: OverlayState.Closed,
-    }
+  public state: State = {
+    labelID: null,
+    overlayState: OverlayState.Closed,
   }
 
   public render() {
@@ -53,6 +52,7 @@ export default class LabelList extends PureComponent<Props, State> {
             label={this.label}
             onDismiss={this.handleCloseModal}
             onUpdateLabel={this.handleUpdateLabel}
+            onNameValidation={this.handleNameValidation}
           />
         </OverlayTechnology>
       </>
@@ -91,5 +91,12 @@ export default class LabelList extends PureComponent<Props, State> {
   private handleUpdateLabel = async (updatedLabel: LabelType) => {
     await this.props.onUpdateLabel(updatedLabel)
     this.setState({overlayState: OverlayState.Closed})
+  }
+
+  private handleNameValidation = (name: string): string | null => {
+    const {labels} = this.props
+    const {labelID} = this.state
+
+    return validateLabelName(labels, name, labelID)
   }
 }

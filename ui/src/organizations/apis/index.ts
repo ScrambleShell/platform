@@ -174,6 +174,7 @@ export const getLabels = async (__: Organization): Promise<Label[]> => {
   return mockLabels
 }
 
+// TODO: implement with an actual API call
 export const createLabel = async (
   __: Organization,
   label: Label
@@ -181,11 +182,13 @@ export const createLabel = async (
   return label
 }
 
+// TODO: implement with an actual API call
 export const deleteLabel = async (
   __: Organization,
   ___: Label
 ): Promise<void> => {}
 
+// TODO: implement with an actual API call
 export const updateLabel = async (
   __: Organization,
   label: Label
