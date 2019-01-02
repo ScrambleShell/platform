@@ -25,20 +25,20 @@ export const authorization: Authorization = {
     {
       action: ActionEnum.Write,
       resource: ResourceEnum.Buckets,
-      id: '4',
+      id: '4dfgdgdfgdfgfdg',
       name: 'Bashful Bucket',
     },
     {
       action: ActionEnum.Write,
       resource: ResourceEnum.Buckets,
-      id: '5',
+      id: 'dfgdfghsdfsd5',
       name: 'defbuck',
     },
     {action: ActionEnum.Read, resource: ResourceEnum.Tasks},
     {
       action: ActionEnum.Read,
       resource: ResourceEnum.Telegrafs,
-      id: '000',
+      id: '000sdfsfsdfsdfsdf',
       name: 'Tubular Telegraf',
     },
   ],
