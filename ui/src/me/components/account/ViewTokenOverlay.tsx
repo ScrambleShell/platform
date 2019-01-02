@@ -5,19 +5,17 @@ import _ from 'lodash'
 // Components
 import {
   IndexList,
-  IconFont,
   OverlayContainer,
   OverlayHeading,
   OverlayBody,
   Alignment,
-  Greys,
   EmptyState,
   ComponentSize,
 } from 'src/clockface'
+import ViewTokenOverlayRow from 'src/me/components/account/ViewTokenOverlayRow'
 
 // Types
-import {Authorization, Permission} from 'src/api'
-const {ActionEnum} = Permission
+import {Authorization} from 'src/api'
 
 interface Props {
   auth: Authorization
@@ -48,74 +46,21 @@ export default class TokenRow extends PureComponent<Props> {
                 width="12%"
                 alignment={Alignment.Center}
               />
-              <IndexList.HeaderCell columnName="Resource" width="76%" />
+              <IndexList.HeaderCell
+                columnName="Delete"
+                width="12%"
+                alignment={Alignment.Center}
+              />
+              <IndexList.HeaderCell columnName="Resource" width="64%" />
             </IndexList.Header>
             <IndexList.Body emptyState={this.emptyList} columnCount={3}>
-              {this.rows}
+              {auth.permissions.map((p, i) => (
+                <ViewTokenOverlayRow key={i} permission={p} />
+              ))}
             </IndexList.Body>
           </IndexList>
         </OverlayBody>
       </OverlayContainer>
-    )
-  }
-
-  private get rows(): JSX.Element[] {
-    const {permissions} = this.props.auth
-
-    return permissions.map(p => (
-      <IndexList.Row>
-        {this.readCell(p)}
-        {this.writeCell(p)}
-        {this.resourceCell(p)}
-      </IndexList.Row>
-    ))
-  }
-
-  private resourceCell = (permission: Permission): JSX.Element => {
-    let resource = `All ${_.upperFirst(permission.resource)}`
-
-    if (permission.id) {
-      resource = permission.name
-    }
-
-    return <IndexList.Cell>{resource}</IndexList.Cell>
-  }
-
-  private readCell = (permission: Permission): JSX.Element => {
-    if (
-      permission.action === ActionEnum.Read ||
-      permission.action === ActionEnum.Write
-    ) {
-      return (
-        <IndexList.Cell alignment={Alignment.Center}>
-          <span
-            className={`icon ${IconFont.Checkmark}`}
-            style={{color: '#4ED8A0'}}
-          />
-        </IndexList.Cell>
-      )
-    }
-  }
-
-  private writeCell = (permission: Permission): JSX.Element => {
-    if (permission.action === ActionEnum.Write) {
-      return (
-        <IndexList.Cell alignment={Alignment.Center}>
-          <span
-            className={`icon ${IconFont.Checkmark}`}
-            style={{color: '#4ED8A0'}}
-          />
-        </IndexList.Cell>
-      )
-    }
-
-    return (
-      <IndexList.Cell alignment={Alignment.Center}>
-        <span
-          className={`icon ${IconFont.Remove}`}
-          style={{color: `${Greys.Mountain}`}}
-        />
-      </IndexList.Cell>
     )
   }
 
