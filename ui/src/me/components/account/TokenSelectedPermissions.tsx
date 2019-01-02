@@ -11,6 +11,8 @@ import {
   EmptyState,
   ComponentSize,
   Form,
+  ButtonShape,
+  Button,
 } from 'src/clockface'
 
 // Types
@@ -28,6 +30,7 @@ export default class TokenSelectedPermissions extends PureComponent<Props> {
         <Form.Box>
           <IndexList size={ComponentSize.Small}>
             <IndexList.Header>
+              <IndexList.HeaderCell columnName="Resource" width="56%" />
               <IndexList.HeaderCell
                 columnName="Read"
                 width="12%"
@@ -38,9 +41,14 @@ export default class TokenSelectedPermissions extends PureComponent<Props> {
                 width="12%"
                 alignment={Alignment.Center}
               />
-              <IndexList.HeaderCell columnName="Resource" width="76%" />
+              <IndexList.HeaderCell
+                columnName="Delete"
+                width="12%"
+                alignment={Alignment.Center}
+              />
+              <IndexList.HeaderCell columnName="" width="8%" />
             </IndexList.Header>
-            <IndexList.Body emptyState={this.emptyList} columnCount={3}>
+            <IndexList.Body emptyState={this.emptyList} columnCount={4}>
               {this.rows}
             </IndexList.Body>
           </IndexList>
@@ -57,6 +65,7 @@ export default class TokenSelectedPermissions extends PureComponent<Props> {
         {this.readCell(p)}
         {this.writeCell(p)}
         {this.resourceCell(p)}
+        {this.actionCell(p)}
       </IndexList.Row>
     ))
   }
@@ -105,6 +114,14 @@ export default class TokenSelectedPermissions extends PureComponent<Props> {
           className={`icon ${IconFont.Remove}`}
           style={{color: `${Greys.Mountain}`}}
         />
+      </IndexList.Cell>
+    )
+  }
+
+  private actionCell = (permission: Permission): JSX.Element => {
+    return (
+      <IndexList.Cell alignment={Alignment.Center} revealOnHover={true}>
+        <Button shape={ButtonShape.Square} icon={IconFont.Remove} />
       </IndexList.Cell>
     )
   }
