@@ -16,7 +16,6 @@ class TokenDescriptionInput extends Component<Props> {
     return (
       <Form.ValidationElement
         label="Description"
-        required={true}
         value={description}
         validationFunc={this.handleValidation}
       >

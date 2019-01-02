@@ -37,7 +37,7 @@ class TokenOrgDropdown extends PureComponent<Props> {
     const {selectedOrgID, onChange} = this.props
 
     return (
-      <Form.Element required={true} label="Organization">
+      <Form.Element label="Organization">
         <Dropdown selectedID={selectedOrgID} onChange={onChange}>
           {this.dropdownItems}
         </Dropdown>

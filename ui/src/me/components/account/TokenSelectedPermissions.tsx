@@ -24,7 +24,7 @@ interface Props {
 export default class TokenSelectedPermissions extends PureComponent<Props> {
   public render() {
     return (
-      <Form.Element label="Selected Permissions" required={true}>
+      <Form.Element label="Selected Permissions">
         <Form.Box>
           <IndexList size={ComponentSize.Small}>
             <IndexList.Header>
