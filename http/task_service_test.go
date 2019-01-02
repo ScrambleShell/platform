@@ -75,7 +75,7 @@ func TestTaskHandler_handleGetTasks(t *testing.T) {
       },
       "id": "0000000000000001",
       "name": "task1",
-      "organizationId": "0000000000000001",
+      "organizationID": "0000000000000001",
       "status": "",
       "flux": "",
       "owner": {
@@ -93,7 +93,7 @@ func TestTaskHandler_handleGetTasks(t *testing.T) {
       },
       "id": "0000000000000002",
       "name": "task2",
-      "organizationId": "0000000000000002",
+      "organizationID": "0000000000000002",
       "status": "",
       "flux": "",
       "owner": {
@@ -112,7 +112,7 @@ func TestTaskHandler_handleGetTasks(t *testing.T) {
 			r := httptest.NewRequest("GET", "http://any.url", nil)
 			w := httptest.NewRecorder()
 
-			h := NewTaskHandler(mock.NewUserResourceMappingService(), mock.NewLabelService(), logger.New(os.Stdout))
+			h := NewTaskHandler(mock.NewUserResourceMappingService(), mock.NewLabelService(), logger.New(os.Stdout), mock.NewUserService())
 			h.TaskService = tt.fields.taskService
 			h.handleGetTasks(w, r)
 
@@ -186,7 +186,7 @@ func TestTaskHandler_handlePostTasks(t *testing.T) {
   },
   "id": "0000000000000001",
   "name": "task1",
-  "organizationId": "0000000000000001",
+  "organizationID": "0000000000000001",
   "status": "",
   "flux": "",
   "owner": {
@@ -212,7 +212,7 @@ func TestTaskHandler_handlePostTasks(t *testing.T) {
 
 			w := httptest.NewRecorder()
 
-			h := NewTaskHandler(mock.NewUserResourceMappingService(), mock.NewLabelService(), logger.New(os.Stdout))
+			h := NewTaskHandler(mock.NewUserResourceMappingService(), mock.NewLabelService(), logger.New(os.Stdout), mock.NewUserService())
 			h.TaskService = tt.fields.taskService
 			h.handlePostTask(w, r)
 
@@ -307,7 +307,7 @@ func TestTaskHandler_handleGetRun(t *testing.T) {
 				httprouter.ParamsKey,
 				httprouter.Params{
 					{
-						Key:   "tid",
+						Key:   "id",
 						Value: tt.args.taskID.String(),
 					},
 					{
@@ -316,7 +316,7 @@ func TestTaskHandler_handleGetRun(t *testing.T) {
 					},
 				}))
 			w := httptest.NewRecorder()
-			h := NewTaskHandler(mock.NewUserResourceMappingService(), mock.NewLabelService(), logger.New(os.Stdout))
+			h := NewTaskHandler(mock.NewUserResourceMappingService(), mock.NewLabelService(), logger.New(os.Stdout), mock.NewUserService())
 			h.TaskService = tt.fields.taskService
 			h.handleGetRun(w, r)
 
@@ -419,12 +419,12 @@ func TestTaskHandler_handleGetRuns(t *testing.T) {
 				httprouter.ParamsKey,
 				httprouter.Params{
 					{
-						Key:   "tid",
+						Key:   "id",
 						Value: tt.args.taskID.String(),
 					},
 				}))
 			w := httptest.NewRecorder()
-			h := NewTaskHandler(mock.NewUserResourceMappingService(), mock.NewLabelService(), logger.New(os.Stdout))
+			h := NewTaskHandler(mock.NewUserResourceMappingService(), mock.NewLabelService(), logger.New(os.Stdout), mock.NewUserService())
 			h.TaskService = tt.fields.taskService
 			h.handleGetRuns(w, r)
 

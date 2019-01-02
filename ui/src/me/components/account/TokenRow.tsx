@@ -12,10 +12,8 @@ import {
 } from 'src/clockface'
 
 // Types
-import {Authorization} from 'src/api'
-
-// Actions
 import {notify} from 'src/shared/actions/notifications'
+import {Authorization} from 'src/api'
 
 interface Props {
   auth: Authorization
@@ -27,7 +25,7 @@ interface Props {
 export default class TokenRow extends PureComponent<Props> {
   public render() {
     const {auth} = this.props
-    const {description, status, org, orgID} = auth
+    const {description, status, org} = auth
 
     return (
       <IndexList.Row>
@@ -44,7 +42,6 @@ export default class TokenRow extends PureComponent<Props> {
               size={ComponentSize.ExtraSmall}
               color={ComponentColor.Danger}
               text="Delete"
-              onClick={this.handleDelete}
             />
           </ComponentSpacer>
         </IndexList.Cell>
@@ -55,13 +52,5 @@ export default class TokenRow extends PureComponent<Props> {
   private handleShowOverlay = (): void => {
     const {onShowOverlay, auth} = this.props
     onShowOverlay(auth.id)
-  }
-
-  private handleDelete = () => {
-    const {
-      auth: {id},
-      onDelete,
-    } = this.props
-    onDelete(id)
   }
 }

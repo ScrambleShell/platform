@@ -14,9 +14,6 @@ import ViewTokenOverlay from 'src/me/components/account/ViewTokenOverlay'
 // Actions
 import {notify} from 'src/shared/actions/notifications'
 
-// Apis
-import {deleteAuthorization} from 'src/authorizations/apis/index'
-
 // Types
 import {Authorization} from 'src/api'
 import {OverlayState} from 'src/types/v2'
@@ -128,7 +125,7 @@ export default class TokenList extends PureComponent<Props, State> {
         }),
       })
 
-      await deleteAuthorization(authID)
+      // await deleteAuthorization(authID)
 
       onNotify(TokenDeletionSuccess)
     } catch (error) {

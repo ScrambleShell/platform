@@ -39,8 +39,9 @@ import (
 	taskexecutor "github.com/influxdata/platform/task/backend/executor"
 	_ "github.com/influxdata/platform/tsdb/tsi1"
 	_ "github.com/influxdata/platform/tsdb/tsm1"
+	"github.com/influxdata/platform/vault"
 	pzap "github.com/influxdata/platform/zap"
-	"github.com/opentracing/opentracing-go"
+	opentracing "github.com/opentracing/opentracing-go"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -79,6 +80,8 @@ type Main struct {
 	natsPath        string
 	developerMode   bool
 	enginePath      string
+
+	secretStore string
 
 	boltClient *bolt.Client
 	engine     *storage.Engine
@@ -193,6 +196,12 @@ func (m *Main) Run(ctx context.Context, args ...string) error {
 				Default: filepath.Join(dir, "engine"),
 				Desc:    "path to persistent engine files",
 			},
+			{
+				DestP:   &m.secretStore,
+				Flag:    "secret-store",
+				Default: "bolt",
+				Desc:    "data store for secrets (bolt or vault)",
+			},
 		},
 	}
 
@@ -259,7 +268,27 @@ func (m *Main) run(ctx context.Context) (err error) {
 		telegrafSvc      platform.TelegrafConfigStore             = m.boltClient
 		userResourceSvc  platform.UserResourceMappingService      = m.boltClient
 		labelSvc         platform.LabelService                    = m.boltClient
+		secretSvc        platform.SecretService                   = m.boltClient
+		lookupSvc        platform.LookupService                   = m.boltClient
 	)
+
+	switch m.secretStore {
+	case "bolt":
+		// If it is bolt, then we already set it above.
+	case "vault":
+		// The vault secret service is configured using the standard vault environment variables.
+		// https://www.vaultproject.io/docs/commands/index.html#environment-variables
+		svc, err := vault.NewSecretService()
+		if err != nil {
+			m.logger.Error("failed initalizing vault secret service", zap.Error(err))
+			return err
+		}
+		secretSvc = svc
+	default:
+		err := fmt.Errorf("unknown secret service %q, expected \"bolt\" or \"vault\"", m.secretStore)
+		m.logger.Error("failed setting secret service", zap.Error(err))
+		return err
+	}
 
 	chronografSvc, err := server.NewServiceV2(ctx, m.boltClient.DB())
 	if err != nil {
@@ -367,6 +396,7 @@ func (m *Main) run(ctx context.Context) (err error) {
 	}
 
 	handlerConfig := &http.APIBackend{
+		DeveloperMode:                   m.developerMode,
 		Logger:                          m.logger,
 		NewBucketService:                source.NewBucketService,
 		NewQueryService:                 source.NewQueryService,
@@ -393,6 +423,8 @@ func (m *Main) run(ctx context.Context) (err error) {
 		TelegrafService:                 telegrafSvc,
 		ScraperTargetStoreService:       scraperTargetSvc,
 		ChronografService:               chronografSvc,
+		SecretService:                   secretSvc,
+		LookupService:                   lookupSvc,
 	}
 
 	// HTTP server
