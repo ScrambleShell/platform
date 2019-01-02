@@ -41,14 +41,9 @@ export default class TokenSelectedPermissions extends PureComponent<Props> {
                 width="12%"
                 alignment={Alignment.Center}
               />
-              <IndexList.HeaderCell
-                columnName="Delete"
-                width="12%"
-                alignment={Alignment.Center}
-              />
               <IndexList.HeaderCell columnName="" width="8%" />
             </IndexList.Header>
-            <IndexList.Body emptyState={this.emptyList} columnCount={4}>
+            <IndexList.Body emptyState={this.emptyList} columnCount={3}>
               {this.rows}
             </IndexList.Body>
           </IndexList>

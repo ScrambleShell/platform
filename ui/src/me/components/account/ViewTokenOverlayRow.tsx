@@ -21,7 +21,6 @@ export default class ViewTokenOverlayRow extends PureComponent<Props> {
       <IndexList.Row>
         {this.readCell}
         {this.writeCell}
-        {this.deleteCell}
         {this.resourceCell}
       </IndexList.Row>
     )
@@ -68,17 +67,6 @@ export default class ViewTokenOverlayRow extends PureComponent<Props> {
       )
     }
 
-    return (
-      <IndexList.Cell alignment={Alignment.Center}>
-        <span
-          className={`icon ${IconFont.Remove}`}
-          style={{color: `${Greys.Mountain}`}}
-        />
-      </IndexList.Cell>
-    )
-  }
-
-  private get deleteCell(): JSX.Element {
     return (
       <IndexList.Cell alignment={Alignment.Center}>
         <span

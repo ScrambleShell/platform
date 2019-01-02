@@ -15,7 +15,8 @@ import {
 import ViewTokenOverlayRow from 'src/me/components/account/ViewTokenOverlayRow'
 
 // Types
-import {Authorization} from 'src/api'
+import {Authorization, Permission} from 'src/api'
+const {ActionEnum} = Permission
 
 interface Props {
   auth: Authorization
@@ -37,21 +38,16 @@ export default class TokenRow extends PureComponent<Props> {
           <IndexList size={ComponentSize.Small}>
             <IndexList.Header>
               <IndexList.HeaderCell
-                columnName="Read"
+                columnName={ActionEnum.Read}
                 width="12%"
                 alignment={Alignment.Center}
               />
               <IndexList.HeaderCell
-                columnName="Write"
+                columnName={ActionEnum.Write}
                 width="12%"
                 alignment={Alignment.Center}
               />
-              <IndexList.HeaderCell
-                columnName="Delete"
-                width="12%"
-                alignment={Alignment.Center}
-              />
-              <IndexList.HeaderCell columnName="Resource" width="64%" />
+              <IndexList.HeaderCell columnName="Resource" width="76%" />
             </IndexList.Header>
             <IndexList.Body emptyState={this.emptyList} columnCount={3}>
               {auth.permissions.map((p, i) => (
