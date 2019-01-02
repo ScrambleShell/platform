@@ -3564,6 +3564,10 @@ components:
             - tasks
             - telegrafs
             - users
+        name:
+          type: string
+          nullable: true
+          description: the name of the resource at this id.
     Authorization:
       required: [orgID, permissions]
       properties:

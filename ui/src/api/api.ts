@@ -1814,6 +1814,12 @@ export interface Permission {
      * @memberof Permission
      */
     resource: Permission.ResourceEnum;
+    /**
+     * the name of the resource at this id.
+     * @type {string}
+     * @memberof Permission
+     */
+    name?: string;
 }
 
 /**
