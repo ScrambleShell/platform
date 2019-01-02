@@ -8,5 +8,5 @@ import (
 
 // Scraper gathers metrics from a scraper target.
 type Scraper interface {
-	Gather(ctx context.Context, target platform.ScraperTarget) (ms []Metrics, err error)
+	Gather(ctx context.Context, target platform.ScraperTarget) (collected MetricsCollection, err error)
 }

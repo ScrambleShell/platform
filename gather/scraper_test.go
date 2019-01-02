@@ -7,9 +7,15 @@ import (
 	"reflect"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/influxdata/platform"
+)
+
+var (
+	orgID, _    = platform.IDFromString("020f755c3c082000")
+	bucketID, _ = platform.IDFromString("020f755c3c082001")
 )
 
 func TestPrometheusScraper(t *testing.T) {
@@ -125,18 +131,18 @@ func TestPrometheusScraper(t *testing.T) {
 			url = ts.URL
 		}
 		results, err := scraper.Gather(context.Background(), platform.ScraperTarget{
-			URL:        url + "/metrics",
-			OrgName:    "org1",
-			BucketName: "bucket1",
+			URL:      url + "/metrics",
+			OrgID:    *orgID,
+			BucketID: *bucketID,
 		})
 		if err != nil && !c.hasErr {
 			t.Fatalf("scraper parse err in testing %s: %v", c.name, err)
 		}
-		if len(c.ms) != len(results) {
+		if len(c.ms) != len(results.MetricsSlice) {
 			t.Fatalf("scraper parse metrics incorrect length, want %d, got %d",
-				len(c.ms), len(results))
+				len(c.ms), len(results.MetricsSlice))
 		}
-		for _, m := range results {
+		for _, m := range results.MetricsSlice {
 			for _, cm := range c.ms {
 				if m.Name == cm.Name {
 					if diff := cmp.Diff(m, cm, metricsCmpOption); diff != "" {
@@ -182,19 +188,19 @@ go_memstats_frees_total 1.8944339e+07
 go_memstats_gc_cpu_fraction 1.972734963012756e-05
 `
 
-// mockStorage implement storage interface
+// mockStorage implement recorder interface
 // and platform.ScraperTargetStoreService interface.
 type mockStorage struct {
 	sync.RWMutex
 	TotalGatherJobs chan struct{}
-	Metrics         map[int64]Metrics
+	Metrics         map[time.Time]Metrics
 	Targets         []platform.ScraperTarget
 }
 
-func (s *mockStorage) Record(ms []Metrics) error {
+func (s *mockStorage) Record(collected MetricsCollection) error {
 	s.Lock()
 	defer s.Unlock()
-	for _, m := range ms {
+	for _, m := range collected.MetricsSlice {
 		s.Metrics[m.Timestamp] = m
 	}
 	s.TotalGatherJobs <- struct{}{}

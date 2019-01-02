@@ -35,7 +35,7 @@ func (h *handler) Process(s nats.Subscription, m nats.Message) {
 		return
 	}
 
-	// send metrics to storage queue
+	// send metrics to recorder queue
 	buf := new(bytes.Buffer)
 	if err := json.NewEncoder(buf).Encode(ms); err != nil {
 		h.Logger.Error("unable to marshal json", zap.Error(err))

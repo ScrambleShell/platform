@@ -270,6 +270,21 @@ func (s *ScraperService) AddTarget(ctx context.Context, target *platform.Scraper
 		return err
 	}
 
+	if !target.OrgID.Valid() {
+		return &platform.Error{
+			Code: platform.EInvalid,
+			Msg:  "org id is invalid",
+			Op:   s.OpPrefix + platform.OpAddTarget,
+		}
+	}
+	if !target.BucketID.Valid() {
+		return &platform.Error{
+			Code: platform.EInvalid,
+			Msg:  "bucket id is invalid",
+			Op:   s.OpPrefix + platform.OpAddTarget,
+		}
+	}
+
 	octets, err := json.Marshal(target)
 	if err != nil {
 		return err

@@ -29,20 +29,22 @@ func TestScheduler(t *testing.T) {
 	defer cancel()
 
 	storage := &mockStorage{
-		Metrics: make(map[int64]Metrics),
+		Metrics: make(map[time.Time]Metrics),
 		Targets: []platform.ScraperTarget{
 			{
-				ID:   platformtesting.MustIDBase16("3a0d0a6365646120"),
-				Type: platform.PrometheusScraperType,
-				URL:  ts.URL + "/metrics",
+				ID:       platformtesting.MustIDBase16("3a0d0a6365646120"),
+				Type:     platform.PrometheusScraperType,
+				URL:      ts.URL + "/metrics",
+				OrgID:    *orgID,
+				BucketID: *bucketID,
 			},
 		},
 		TotalGatherJobs: make(chan struct{}, totalGatherJobs),
 	}
 
-	subscriber.Subscribe(MetricsSubject, "", &StorageHandler{
-		Logger:  logger,
-		Storage: storage,
+	subscriber.Subscribe(MetricsSubject, "", &RecorderHandler{
+		Logger:   logger,
+		Recorder: storage,
 	})
 
 	scheduler, err := NewScheduler(10, logger,
