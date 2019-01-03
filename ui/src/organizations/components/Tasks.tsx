@@ -9,7 +9,6 @@ import FilterList from 'src/shared/components/Filter'
 
 // Types
 import {Task} from 'src/api'
-import {dummyTasks} from 'src/tasks/dummyData'
 
 interface Props {
   tasks: Task[]
@@ -45,17 +44,12 @@ export default class Tasks extends PureComponent<Props, State> {
         <FilterList<Task>
           searchTerm={searchTerm}
           searchKeys={['name', 'owner.name']}
-          list={this.tempTasks}
+          list={this.props.tasks}
         >
           {ts => <TaskList tasks={ts} emptyState={this.emptyState} />}
         </FilterList>
       </>
     )
-  }
-
-  // TODO: use real tasks
-  private get tempTasks(): Task[] {
-    return dummyTasks
   }
 
   private handleFilterBlur = (e: ChangeEvent<HTMLInputElement>): void => {
