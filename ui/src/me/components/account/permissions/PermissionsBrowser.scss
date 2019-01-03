@@ -1,0 +1,85 @@
+/*
+  Permissions Browser
+  ------------------------------------------------------------------------------
+*/
+
+@import 'src/style/modules';
+
+.permissions-browser {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.permissions-browser--tabs {
+  flex: 0 0 $ix-marg-d;
+  display: flex;
+  align-items: stretch;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.permissions-browser--tab {
+  margin: 0;
+  user-select: none;
+  padding: 0 $ix-marg-c;
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: $radius $radius 0 0;
+  background-color: $g3-castle;
+  color: $g8-storm;
+  transition: color 0.25s ease, background-color 0.25s ease;
+
+  &:hover,
+  &.active {
+    background-color: $g4-onyx;
+    color: $g15-platinum;
+  }
+
+  &:hover {
+    cursor: pointer;
+  }
+}
+
+.permissions-browser--scrollbox {
+  background-color: $g4-onyx;
+  border-radius: $radius;
+  border-top-left-radius: 0;
+}
+
+.permissions-browser--list {
+  padding: $ix-marg-b;
+}
+
+.permissions-browser--list-item {
+  white-space: nowrap;
+  user-select: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  font-weight: 500;
+  color: $g11-sidewalk;
+  padding: $ix-marg-b;
+  transition: color 0.25s ease, background-color 0.25s ease;
+
+  > span {
+    display: inline-block;
+    margin-left: $ix-marg-b;
+    color: $g11-sidewalk;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  &:hover {
+    cursor: pointer;
+    background-color: $g5-pepper;
+    color: $g18-cloud;
+
+    > span {
+      opacity: 1;
+    }
+  }
+}

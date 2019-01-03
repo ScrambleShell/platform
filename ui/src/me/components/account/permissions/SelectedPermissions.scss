@@ -1,0 +1,11 @@
+/*
+  Selected Permissions
+  ------------------------------------------------------------------------------
+*/
+
+@import 'src/style/modules';
+
+.form--box.selected-permissions--list {
+  min-height: 180px;
+  background-color: $g3-castle;
+}

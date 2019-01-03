@@ -7,34 +7,19 @@ import {Dropdown, Form} from 'src/clockface'
 // Types
 import {Organization} from 'src/api'
 
-// Mocks
-const mockOrgs: Organization[] = [
-  {
-    id: '0',
-    name: 'Cool Kids Club',
-  },
-  {
-    id: '1',
-    name: '44th Street Tigers',
-  },
-  {
-    id: '3',
-    name: 'Pumpkin Smashers',
-  },
-  {
-    id: '4',
-    name: 'Dark Soul Devils',
-  },
-]
-
 interface Props {
+  organizations: Organization[]
   selectedOrgID: string
   onChange: (orgID: string) => void
 }
 
 class TokenOrgDropdown extends PureComponent<Props> {
   public render() {
-    const {selectedOrgID, onChange} = this.props
+    const {selectedOrgID, onChange, organizations} = this.props
+
+    if (!organizations) {
+      return null
+    }
 
     return (
       <Form.Element label="Organization">
@@ -46,7 +31,8 @@ class TokenOrgDropdown extends PureComponent<Props> {
   }
 
   private get dropdownItems(): JSX.Element[] {
-    return mockOrgs.map(o => (
+    const {organizations} = this.props
+    return organizations.map(o => (
       <Dropdown.Item key={o.id} id={o.id} value={o.id}>
         {o.name}
       </Dropdown.Item>

@@ -36,11 +36,11 @@ enum AuthSearchKeys {
   Status = 'status',
 }
 
-interface Props {
+interface DispatchProps {
   onNotify: typeof notify
 }
 
-export class Tokens extends PureComponent<Props, State> {
+export class Tokens extends PureComponent<{}, State> {
   constructor(props) {
     super(props)
     this.state = {
@@ -120,7 +120,7 @@ export class Tokens extends PureComponent<Props, State> {
   }
 
   private handleGenerateToken = (authorization: Authorization): void => {
-    console.log(authorization)
+    console.log('bloop', authorization)
   }
 }
 
@@ -128,7 +128,7 @@ const mdtp = {
   onNotify: notify,
 }
 
-export default connect<Props>(
+export default connect<null, DispatchProps>(
   null,
   mdtp
 )(Tokens)
