@@ -16,7 +16,7 @@ class FormLabel extends Component<Props> {
     const {label, children, title} = this.props
 
     return (
-      <label className="form--label" title={title} alt={label}>
+      <label className="form--label" title={title}>
         <span>
           {label}
           {this.requiredIndicator}
