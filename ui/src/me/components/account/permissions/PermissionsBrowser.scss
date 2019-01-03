@@ -9,6 +9,7 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  margin: $ix-marg-c 0;
 }
 
 .permissions-browser--tabs {
@@ -64,6 +65,7 @@
   color: $g11-sidewalk;
   padding: $ix-marg-b;
   transition: color 0.25s ease, background-color 0.25s ease;
+  border-radius: $radius;
 
   > span {
     display: inline-block;

@@ -1,5 +1,5 @@
 // Libraries
-import React, {PureComponent, ChangeEvent} from 'react'
+import React, {Component, ChangeEvent} from 'react'
 import {connect} from 'react-redux'
 import _ from 'lodash'
 
@@ -46,7 +46,7 @@ interface State {
 
 type Props = StateProps & ComponentProps
 
-class GenerateTokenOverlay extends PureComponent<Props, State> {
+class GenerateTokenOverlay extends Component<Props, State> {
   constructor(props: Props) {
     super(props)
 
@@ -69,23 +69,16 @@ class GenerateTokenOverlay extends PureComponent<Props, State> {
             <Grid>
               <Grid.Row>
                 <Grid.Column widthSM={Columns.Six}>
-                  <TokenDescriptionInput
-                    description={description}
-                    onChange={this.handleDescriptionChange}
-                  />
-                </Grid.Column>
-                <Grid.Column widthSM={Columns.Six}>
                   <TokenOrgDropdown
                     organizations={orgs}
                     selectedOrgID={orgID}
                     onChange={this.handleDropdownChange}
                   />
                 </Grid.Column>
-                <Grid.Column widthXS={Columns.Twelve}>
-                  <SelectedPermissions
-                    permissions={permissions}
-                    onRemovePermission={this.handleRemovePermission}
-                    onUpdatePermission={this.handleUpdatePermission}
+                <Grid.Column widthSM={Columns.Six}>
+                  <TokenDescriptionInput
+                    description={description}
+                    onChange={this.handleDescriptionChange}
                   />
                 </Grid.Column>
                 <Grid.Column widthXS={Columns.Twelve}>
@@ -102,6 +95,13 @@ class GenerateTokenOverlay extends PureComponent<Props, State> {
                       </Spinner>
                     )}
                   </GetOrgResources>
+                </Grid.Column>
+                <Grid.Column widthXS={Columns.Twelve}>
+                  <SelectedPermissions
+                    permissions={permissions}
+                    onRemovePermission={this.handleRemovePermission}
+                    onUpdatePermission={this.handleUpdatePermission}
+                  />
                 </Grid.Column>
                 <Grid.Column widthXS={Columns.Twelve}>
                   <Form.Footer>

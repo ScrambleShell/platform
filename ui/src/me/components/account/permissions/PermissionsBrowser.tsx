@@ -7,12 +7,14 @@ import PermissionBrowserItem from 'src/me/components/account/permissions/Permiss
 
 // Types
 import {Bucket} from 'src/types/v2'
+import {Permission} from 'src/api'
 
 // Styles
 import 'src/me/components/account/permissions/PermissionsBrowser.scss'
 
 interface Props {
   buckets: Bucket[]
+  permissions: Permission[]
   onAddPermission: (Bucket) => void
 }
 
@@ -39,7 +41,7 @@ export default class PermissionsBrowser extends PureComponent<Props> {
 
     if (buckets.length) {
       return (
-        <>
+        <div className="permissions-browser--list">
           <PermissionBrowserItem onClick={onAddPermission} />
           {buckets.map(b => (
             <PermissionBrowserItem
@@ -48,7 +50,7 @@ export default class PermissionsBrowser extends PureComponent<Props> {
               onClick={onAddPermission}
             />
           ))}
-        </>
+        </div>
       )
     }
 
