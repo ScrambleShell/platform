@@ -4,6 +4,9 @@ import React, {Component, KeyboardEvent, ChangeEvent} from 'react'
 // Constants
 import {DASHBOARD_NAME_MAX_LENGTH} from 'src/dashboards/constants/index'
 
+// Components
+import {ClickOutside} from 'src/shared/components/ClickOutside'
+
 // Decorators
 import {ErrorHandling} from 'src/shared/decorators/errors'
 
@@ -24,16 +27,33 @@ class RenameDashboard extends Component<Props, State> {
 
     this.state = {
       isEditing: false,
-      workingName: props.name,
+      workingName: this.props.name,
     }
   }
 
   public render() {
-    const {isEditing} = this.state
     const {name} = this.props
+    const {isEditing, workingName} = this.state
 
     if (isEditing) {
-      return <div className="rename-dashboard">{this.input}</div>
+      return (
+        <div className="rename-dashboard">
+          <ClickOutside onClickOutside={this.handleClickOutside}>
+            <input
+              maxLength={DASHBOARD_NAME_MAX_LENGTH}
+              type="text"
+              value={workingName}
+              autoFocus={true}
+              spellCheck={false}
+              placeholder="Name this Dashboard"
+              onFocus={this.handleInputFocus}
+              onChange={this.handleInputChange}
+              onKeyDown={this.handleKeyDown}
+              className="rename-dashboard--input"
+            />
+          </ClickOutside>
+        </div>
+      )
     }
 
     return (
@@ -49,24 +69,13 @@ class RenameDashboard extends Component<Props, State> {
     )
   }
 
-  private get input(): JSX.Element {
+  private handleClickOutside = async (): Promise<void> => {
     const {workingName} = this.state
+    const {onRename} = this.props
 
-    return (
-      <input
-        maxLength={DASHBOARD_NAME_MAX_LENGTH}
-        type="text"
-        value={workingName}
-        autoFocus={true}
-        spellCheck={false}
-        placeholder="Name this Dashboard"
-        onFocus={this.handleInputFocus}
-        onBlur={this.handleInputBlur(false)}
-        onChange={this.handleInputChange}
-        onKeyDown={this.handleKeyDown}
-        className="rename-dashboard--input"
-      />
-    )
+    await onRename(workingName)
+
+    this.setState({isEditing: false})
   }
 
   private handleStartEditing = (): void => {
@@ -77,25 +86,19 @@ class RenameDashboard extends Component<Props, State> {
     this.setState({workingName: e.target.value})
   }
 
-  private handleInputBlur = (reset: boolean) => (): void => {
-    const {onRename} = this.props
+  private handleKeyDown = async (
+    e: KeyboardEvent<HTMLInputElement>
+  ): Promise<void> => {
+    const {onRename, name} = this.props
+    const {workingName} = this.state
 
-    if (reset) {
-      onRename(this.props.name)
-    } else {
-      onRename(this.state.workingName)
-    }
-
-    this.setState({isEditing: false})
-  }
-
-  private handleKeyDown = (e: KeyboardEvent<HTMLInputElement>): void => {
     if (e.key === 'Enter') {
-      this.handleInputBlur(false)()
+      await onRename(workingName)
+      this.setState({isEditing: false})
     }
 
     if (e.key === 'Escape') {
-      this.handleInputBlur(true)()
+      this.setState({isEditing: false, workingName: name})
     }
   }
 
