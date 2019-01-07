@@ -5,10 +5,31 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/influxdata/platform/tsdb"
+
 	"github.com/influxdata/platform"
 	"github.com/influxdata/platform/nats"
+	"github.com/influxdata/platform/storage"
 	"go.uber.org/zap"
 )
+
+// PointWriter will use the storage.PointWriter interface to record metrics.
+type PointWriter struct {
+	Writer storage.PointsWriter
+}
+
+// Record the metrics and write using storage.PointWriter interface.
+func (s PointWriter) Record(collected MetricsCollection) error {
+	ps, err := collected.MetricsSlice.Points()
+	if err != nil {
+		return err
+	}
+	ps, err = tsdb.ExplodePoints(collected.OrgID, collected.BucketID, ps)
+	if err != nil {
+		return err
+	}
+	return s.Writer.WritePoints(ps)
+}
 
 // PlatformWriter will use the writer interface to record the metrics.
 type PlatformWriter struct {

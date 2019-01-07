@@ -29,6 +29,22 @@ type Metrics struct {
 // MetricsSlice is a slice of Metrics
 type MetricsSlice []Metrics
 
+// Points convert the MetricsSlice to model.Points
+func (ms MetricsSlice) Points() (models.Points, error) {
+	ps := make([]models.Point, len(ms))
+	for mi, m := range ms {
+		point, err := models.NewPoint(m.Name, models.NewTags(m.Tags), m.Fields, m.Timestamp)
+		if err != nil {
+			return ps, err
+		}
+		if m.Type.Valid() {
+			point.AddTag("type", m.Type.String())
+		}
+		ps[mi] = point
+	}
+	return ps, nil
+}
+
 // Reader returns an io.Reader that enumerates the metrics.
 // All metrics are allocated into the underlying buffer.
 func (ms MetricsSlice) Reader() (io.Reader, error) {
