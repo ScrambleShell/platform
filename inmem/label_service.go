@@ -24,7 +24,7 @@ func (s *Service) loadLabel(ctx context.Context, resourceID platform.ID, name st
 
 	l, ok := i.(platform.Label)
 	if !ok {
-		return nil, fmt.Errorf("type %T is not a label~", i)
+		return nil, fmt.Errorf("type %T is not a label", i)
 	}
 
 	i, ok = s.labelPropKV.Load(encodeLabelPropKey(name))
@@ -50,7 +50,7 @@ func (s *Service) forEachLabel(ctx context.Context, fn func(m *platform.Label) b
 	s.labelKV.Range(func(k, v interface{}) bool {
 		l, ok := v.(platform.Label)
 		if !ok {
-			err = fmt.Errorf("type %T is not a label!!", v)
+			err = fmt.Errorf("type %T is not a label", v)
 			return false
 		}
 		return fn(&l)
