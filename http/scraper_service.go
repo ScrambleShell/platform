@@ -8,7 +8,6 @@ import (
 	"path"
 
 	"github.com/influxdata/platform"
-	kerrors "github.com/influxdata/platform/kit/errors"
 	"github.com/julienschmidt/httprouter"
 	"go.uber.org/zap"
 )
@@ -159,7 +158,10 @@ func decodeScraperTargetIDRequest(ctx context.Context, r *http.Request) (*platfo
 	params := httprouter.ParamsFromContext(ctx)
 	id := params.ByName("id")
 	if id == "" {
-		return nil, kerrors.InvalidDataf("url missing id")
+		return nil, &platform.Error{
+			Code: platform.EInvalid,
+			Msg:  "url missing id",
+		}
 	}
 
 	var i platform.ID
