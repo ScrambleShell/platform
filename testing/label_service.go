@@ -399,44 +399,56 @@ func UpdateLabel(
 				},
 			},
 		},
-		// {
-		// 	name: "label update proliferation",
-		// 	fields: LabelFields{
-		// 		Labels: []*platform.Label{
-		// 			{
-		// 				ResourceID: MustIDBase16(bucketOneID),
-		// 				Name:       "Tag1",
-		// 			},
-		// 			{
-		// 				ResourceID: MustIDBase16(bucketTwoID),
-		// 				Name:       "Tag1",
-		// 			},
-		// 		},
-		// 	},
-		// 	args: args{
-		// 		label: platform.Label{
-		// 			ResourceID: MustIDBase16(bucketOneID),
-		// 			Name:       "Tag1",
-		// 		},
-		// 		update: platform.LabelUpdate{
-		// 			Color: &validColor,
-		// 		},
-		// 	},
-		// 	wants: wants{
-		// 		labels: []*platform.Label{
-		// 			{
-		// 				ResourceID: MustIDBase16(bucketOneID),
-		// 				Name:       "Tag1",
-		// 				Color:      "fff000",
-		// 			},
-		// 			{
-		// 				ResourceID: MustIDBase16(bucketTwoID),
-		// 				Name:       "Tag1",
-		// 				Color:      "fff000",
-		// 			},
-		// 		},
-		// 	},
-		// },
+		{
+			name: "label update proliferation",
+			fields: LabelFields{
+				Labels: []*platform.Label{
+					{
+						ResourceID: MustIDBase16(bucketOneID),
+						Name:       "Tag1",
+						Properties: map[string]string{
+							"color": "aaabbb",
+						},
+					},
+					{
+						ResourceID: MustIDBase16(bucketTwoID),
+						Name:       "Tag1",
+						Properties: map[string]string{
+							"color": "aaabbb",
+						},
+					},
+				},
+			},
+			args: args{
+				label: platform.Label{
+					ResourceID: MustIDBase16(bucketOneID),
+					Name:       "Tag1",
+				},
+				update: platform.LabelUpdate{
+					Properties: map[string]string{
+						"color": "fff000",
+					},
+				},
+			},
+			wants: wants{
+				labels: []*platform.Label{
+					{
+						ResourceID: MustIDBase16(bucketOneID),
+						Name:       "Tag1",
+						Properties: map[string]string{
+							"color": "fff000",
+						},
+					},
+					{
+						ResourceID: MustIDBase16(bucketTwoID),
+						Name:       "Tag1",
+						Properties: map[string]string{
+							"color": "fff000",
+						},
+					},
+				},
+			},
+		},
 		{
 			name: "updating a non-existent label",
 			fields: LabelFields{

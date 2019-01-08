@@ -10,11 +10,15 @@ import (
 )
 
 var (
-	labelBucket = []byte("labelsv1")
+	labelBucket      = []byte("labelsv1")
+	labelPropsBucket = []byte("labelpropertiesv1")
 )
 
 func (c *Client) initializeLabels(ctx context.Context, tx *bolt.Tx) error {
 	if _, err := tx.CreateBucketIfNotExists([]byte(labelBucket)); err != nil {
+		return err
+	}
+	if _, err := tx.CreateBucketIfNotExists([]byte(labelPropsBucket)); err != nil {
 		return err
 	}
 	return nil
@@ -71,6 +75,18 @@ func (c *Client) findLabels(ctx context.Context, tx *bolt.Tx, filter platform.La
 		return true
 	})
 
+	for i, l := range ls {
+		propKey := labelPropKey(l)
+		m := make(map[string]string)
+		v := tx.Bucket(labelPropsBucket).Get(propKey)
+		err = json.Unmarshal(v, &m)
+		if err != nil {
+			return nil, err
+		}
+
+		ls[i].Properties = m
+	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -78,6 +94,7 @@ func (c *Client) findLabels(ctx context.Context, tx *bolt.Tx, filter platform.La
 	return ls, nil
 }
 
+// CreateLabel creates a new label.
 func (c *Client) CreateLabel(ctx context.Context, l *platform.Label) error {
 	return c.db.Update(func(tx *bolt.Tx) error {
 		return c.createLabel(ctx, tx, l)
@@ -100,8 +117,17 @@ func (c *Client) createLabel(ctx context.Context, tx *bolt.Tx, l *platform.Label
 		return err
 	}
 
+	p, err := json.Marshal(l.Properties)
+	if err != nil {
+		return err
+	}
+
 	key, err := labelKey(l)
 	if err != nil {
+		return err
+	}
+
+	if err := tx.Bucket(labelPropsBucket).Put(labelPropKey(l), p); err != nil {
 		return err
 	}
 
@@ -126,6 +152,13 @@ func labelKey(l *platform.Label) ([]byte, error) {
 	copy(key[len(encodedResourceID):], l.Name)
 
 	return key, nil
+}
+
+func labelPropKey(l *platform.Label) []byte {
+	key := make([]byte, len(l.Name))
+	copy(key, l.Name)
+
+	return key
 }
 
 func (c *Client) forEachLabel(ctx context.Context, tx *bolt.Tx, fn func(*platform.Label) bool) error {
@@ -185,15 +218,22 @@ func (c *Client) updateLabel(ctx context.Context, tx *bolt.Tx, l *platform.Label
 
 	label := ls[0]
 
-	if label.Properties == nil {
-		label.Properties = make(map[string]string)
-	}
+	if label.Properties != nil {
+		for k, v := range upd.Properties {
+			if v == "" {
+				delete(label.Properties, k)
+			} else {
+				label.Properties[k] = v
+			}
+		}
 
-	for k, v := range upd.Properties {
-		if v == "" {
-			delete(label.Properties, k)
-		} else {
-			label.Properties[k] = v
+		p, err := json.Marshal(label.Properties)
+		if err != nil {
+			return nil, err
+		}
+
+		if err := tx.Bucket(labelPropsBucket).Put(labelPropKey(l), p); err != nil {
+			return nil, err
 		}
 	}
 
