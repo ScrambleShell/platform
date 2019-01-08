@@ -12,6 +12,10 @@ func encodeLabelKey(resourceID platform.ID, name string) string {
 	return path.Join(resourceID.String(), name)
 }
 
+func encodeLabelPropKey(name string) string {
+	return path.Join("properties", name)
+}
+
 func (s *Service) loadLabel(ctx context.Context, resourceID platform.ID, name string) (*platform.Label, error) {
 	i, ok := s.labelKV.Load(encodeLabelKey(resourceID, name))
 	if !ok {
@@ -20,8 +24,19 @@ func (s *Service) loadLabel(ctx context.Context, resourceID platform.ID, name st
 
 	l, ok := i.(platform.Label)
 	if !ok {
-		return nil, fmt.Errorf("type %T is not a label", i)
+		return nil, fmt.Errorf("type %T is not a label~", i)
 	}
+
+	i, ok = s.labelPropKV.Load(encodeLabelPropKey(name))
+	if !ok {
+		return nil, platform.ErrLabelNotFound
+	}
+
+	p, ok := i.(map[string]string)
+	if !ok {
+		return nil, fmt.Errorf("type %T is not a label property", i)
+	}
+	l.Properties = p
 
 	return &l, nil
 }
@@ -35,7 +50,7 @@ func (s *Service) forEachLabel(ctx context.Context, fn func(m *platform.Label) b
 	s.labelKV.Range(func(k, v interface{}) bool {
 		l, ok := v.(platform.Label)
 		if !ok {
-			err = fmt.Errorf("type %T is not a label", v)
+			err = fmt.Errorf("type %T is not a label!!", v)
 			return false
 		}
 		return fn(&l)
@@ -93,6 +108,8 @@ func (s *Service) CreateLabel(ctx context.Context, l *platform.Label) error {
 	}
 
 	s.labelKV.Store(encodeLabelKey(l.ResourceID, l.Name), *l)
+	s.labelPropKV.Store(encodeLabelPropKey(l.Name), l.Properties)
+
 	return nil
 }
 
@@ -133,6 +150,7 @@ func (s *Service) UpdateLabel(ctx context.Context, l *platform.Label, upd platfo
 
 func (s *Service) PutLabel(ctx context.Context, l *platform.Label) error {
 	s.labelKV.Store(encodeLabelKey(l.ResourceID, l.Name), *l)
+	s.labelPropKV.Store(encodeLabelPropKey(l.Name), l.Properties)
 	return nil
 }
 
