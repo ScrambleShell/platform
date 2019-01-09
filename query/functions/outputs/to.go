@@ -4,10 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/influxdata/platform/tsdb"
-	"time"
-
 	"sort"
+	"time"
 
 	"github.com/influxdata/flux"
 	"github.com/influxdata/flux/execute"
@@ -20,6 +18,7 @@ import (
 	"github.com/influxdata/platform/models"
 	istorage "github.com/influxdata/platform/query/functions/inputs/storage"
 	"github.com/influxdata/platform/storage"
+	"github.com/influxdata/platform/tsdb"
 )
 
 // ToKind is the kind for the `to` flux function
@@ -491,7 +490,7 @@ func writeTable(t *ToTransformation, tbl flux.Table) error {
 
 	measurementStats := make(map[string]Stats)
 	measurementName := ""
-	return tbl.DoArrow(func(er flux.ArrowColReader) error {
+	return tbl.Do(func(er flux.ColReader) error {
 		var pointTime time.Time
 		var points models.Points
 		var tags models.Tags
@@ -505,7 +504,7 @@ func writeTable(t *ToTransformation, tbl flux.Table) error {
 				case col.Label == spec.MeasurementColumn:
 					measurementName = string(er.Strings(j).Value(i))
 				case col.Label == timeColLabel:
-					pointTime = execute.ValueForRowArrow(er, i, j).Time().Time()
+					pointTime = execute.ValueForRow(er, i, j).Time().Time()
 				case isTag[j]:
 					if col.Type != flux.TString {
 						return errors.New("invalid type for tag column")
@@ -568,7 +567,7 @@ func writeTable(t *ToTransformation, tbl flux.Table) error {
 				return err
 			}
 			points = append(points, pt)
-			if err := execute.AppendRecordArrow(i, er, builder); err != nil {
+			if err := execute.AppendRecord(i, er, builder); err != nil {
 				return err
 			}
 		}
@@ -577,7 +576,7 @@ func writeTable(t *ToTransformation, tbl flux.Table) error {
 	})
 }
 
-func defaultFieldMapping(er flux.ArrowColReader, row int) (values.Object, error) {
+func defaultFieldMapping(er flux.ColReader, row int) (values.Object, error) {
 	fieldColumnIdx := execute.ColIdx(defaultFieldColLabel, er.Cols())
 	valueColumnIdx := execute.ColIdx(execute.DefaultValueColLabel, er.Cols())
 
@@ -589,10 +588,10 @@ func defaultFieldMapping(er flux.ArrowColReader, row int) (values.Object, error)
 		return nil, errors.New("table has no _value column")
 	}
 
-	value := execute.ValueForRowArrow(er, row, valueColumnIdx)
+	value := execute.ValueForRow(er, row, valueColumnIdx)
 
 	fieldValueMapping := values.NewObject()
-	field := execute.ValueForRowArrow(er, row, fieldColumnIdx)
+	field := execute.ValueForRow(er, row, fieldColumnIdx)
 	fieldValueMapping.Set(field.Str(), value)
 
 	return fieldValueMapping, nil
