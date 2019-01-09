@@ -1,20 +1,23 @@
 // Library
-import {Component} from 'react'
+import React, {Component} from 'react'
 import {isEqual, flatten} from 'lodash'
 import {connect} from 'react-redux'
 
 // API
-import {executeQueries} from 'src/shared/apis/v2/query'
+import {executeQueries, ExecuteFluxQueryResult} from 'src/shared/apis/v2/query'
 
 // Types
 import {RemoteDataState, FluxTable} from 'src/types'
 import {DashboardQuery, URLQuery} from 'src/types/v2/dashboards'
 import {AppState, Source} from 'src/types/v2'
+import {WrappedCancelablePromise} from 'src/types/promises'
 
 // Utils
 import {parseResponse} from 'src/shared/parsing/flux/response'
 import {restartable, CancellationError} from 'src/utils/restartable'
 import {getSources, getActiveSource} from 'src/sources/selectors'
+import {makeCancelable} from 'src/utils/promises'
+import {CancelationProvider} from 'src/utils/cancelation'
 
 export const DEFAULT_TIME_SERIES = [{response: {results: []}}]
 
@@ -69,6 +72,7 @@ class TimeSeries extends Component<Props, State> {
 
   public state: State = defaultState()
 
+  private pendingQueries: WrappedCancelablePromise<ExecuteFluxQueryResult[]>
   private executeQueries = restartable(executeQueries)
 
   public async componentDidMount() {
@@ -84,14 +88,18 @@ class TimeSeries extends Component<Props, State> {
   public render() {
     const {tables, files, loading, error, fetchCount, duration} = this.state
 
-    return this.props.children({
-      tables,
-      files,
-      loading,
-      error,
-      duration,
-      isInitialFetch: fetchCount === 1,
-    })
+    return (
+      <CancelationProvider onCancel={this.handleCancelQueries}>
+        {this.props.children({
+          tables,
+          files,
+          loading,
+          error,
+          duration,
+          isInitialFetch: fetchCount === 1,
+        })}
+      </CancelationProvider>
+    )
   }
 
   private get queries(): URLQuery[] {
@@ -103,6 +111,12 @@ class TimeSeries extends Component<Props, State> {
 
       return {url, text: query.text, type: query.type}
     })
+  }
+
+  private handleCancelQueries = () => {
+    if (this.pendingQueries) {
+      this.pendingQueries.cancel()
+    }
   }
 
   private reload = async () => {
@@ -127,7 +141,7 @@ class TimeSeries extends Component<Props, State> {
 
     try {
       const startTime = Date.now()
-      const results = await this.executeQueries(queries, this.props.variables)
+      const results = await this.executeCancelableQueries(queries)
       const duration = Date.now() - startTime
       const tables = flatten(results.map(r => parseResponse(r.csv)))
       const files = results.map(r => r.csv)
@@ -147,6 +161,23 @@ class TimeSeries extends Component<Props, State> {
         error,
         loading: RemoteDataState.Error,
       })
+    }
+  }
+
+  private executeCancelableQueries = async (queries: URLQuery[]) => {
+    try {
+      const requests = this.executeQueries(queries, this.props.variables)
+      this.pendingQueries = makeCancelable(requests)
+
+      return await this.pendingQueries.promise
+    } catch (error) {
+      if (error.isCanceled) {
+        this.setState({loading: RemoteDataState.NotStarted})
+
+        throw new CancellationError()
+      }
+
+      throw error
     }
   }
 

@@ -26,6 +26,7 @@ import {
   getActiveTimeMachine,
   getActiveQuery,
 } from 'src/shared/selectors/timeMachines'
+import {withCancelation, CancelationProps} from 'src/utils/cancelation'
 
 // Styles
 import 'src/shared/components/TimeMachineQueries.scss'
@@ -39,6 +40,7 @@ import {
 } from 'src/types/v2'
 import {DashboardDraftQuery} from 'src/types/v2/dashboards'
 import {QueriesState} from 'src/shared/components/TimeSeries'
+import {RemoteDataState} from 'src/types'
 
 interface StateProps {
   activeQuery: DashboardQuery
@@ -53,10 +55,10 @@ interface OwnProps {
   queriesState: QueriesState
 }
 
-type Props = StateProps & DispatchProps & OwnProps
+type Props = StateProps & DispatchProps & OwnProps & CancelationProps
 
 const TimeMachineQueries: SFC<Props> = props => {
-  const {activeQuery, queriesState, draftQueries, onAddQuery} = props
+  const {activeQuery, queriesState, draftQueries, onAddQuery, onCancel} = props
 
   let queryEditor
 
@@ -95,6 +97,14 @@ const TimeMachineQueries: SFC<Props> = props => {
           />
           <TimeMachineQueriesSwitcher />
           <SubmitQueryButton queryStatus={queriesState.loading} />
+          {queriesState.loading === RemoteDataState.Loading && (
+            <Button
+              text="Cancel"
+              size={ComponentSize.Small}
+              onClick={onCancel}
+              color={ComponentColor.Danger}
+            />
+          )}
         </div>
       </div>
       <div className="time-machine-queries--body">{queryEditor}</div>
@@ -116,4 +126,4 @@ const mdtp = {
 export default connect<StateProps, DispatchProps, OwnProps>(
   mstp,
   mdtp
-)(TimeMachineQueries)
+)(withCancelation(TimeMachineQueries))
