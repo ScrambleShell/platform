@@ -578,6 +578,96 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+  /scrapertargets:
+    get:
+      tags:
+        - ScraperTargets
+      summary: get all scraper targets
+      responses:
+        '200':
+          description: all macros for an organization
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScraperTarget"
+    post:
+      summary: create a scraper target
+      tags:
+        - ScraperTargets
+      requestBody:
+        description: scraper target to create
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScraperTarget"
+      responses:
+        '201':
+          description: scraper target created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScraperTarget"
+        default:
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  '/scrapertargets/{scrapertargetsID}':
+    delete:
+      tags:
+        - ScraperTargets
+      summary: delete a scraper target
+      parameters:
+        - $ref: '#/components/parameters/TraceSpan'
+        - in: path
+          name: scraperTargetID
+          required: true
+          schema:
+            type: string
+          description: id of the scraper target
+      responses:
+        '204':
+          description: scraper target deleted
+        default:
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    patch:
+      summary: update a scraper target
+      tags:
+        - Macros
+      parameters:
+        - $ref: '#/components/parameters/TraceSpan'
+        - in: path
+          name: scraperTargetID
+          required: true
+          schema:
+            type: string
+          description: id of the scraper target
+      requestBody:
+        description: scraper target update to apply
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScraperTarget"
+      responses:
+        '200':
+          description: scraper target updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Macro"
+        default:
+          description: internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"              
   /macros:
     get:
       tags:
@@ -6225,6 +6315,28 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Source"
+    ScraperTarget:
+      type: object
+      properties:
+        id:
+          type: string
+        links:
+              type: object
+              properties:
+                self:
+                  type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum: [prometheus]
+        url:
+          type: string
+          example:  http://localhost:9090/metrics
+        orgID:
+          type: string
+        bucketID:
+          type: string
     TelegrafRequest:
       type: object
       properties:
