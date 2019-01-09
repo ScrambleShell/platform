@@ -1,5 +1,5 @@
 // Library
-import React, {Component} from 'react'
+import {Component} from 'react'
 import {isEqual, flatten} from 'lodash'
 import {connect} from 'react-redux'
 
@@ -17,7 +17,6 @@ import {parseResponse} from 'src/shared/parsing/flux/response'
 import {restartable, CancellationError} from 'src/utils/restartable'
 import {getSources, getActiveSource} from 'src/sources/selectors'
 import {makeCancelable} from 'src/utils/promises'
-import {CancelationProvider} from 'src/utils/cancelation'
 
 export const DEFAULT_TIME_SERIES = [{response: {results: []}}]
 
@@ -28,6 +27,7 @@ export interface QueriesState {
   error: Error | null
   isInitialFetch: boolean
   duration: number
+  onCancel: () => void
 }
 
 interface StateProps {
@@ -88,18 +88,15 @@ class TimeSeries extends Component<Props, State> {
   public render() {
     const {tables, files, loading, error, fetchCount, duration} = this.state
 
-    return (
-      <CancelationProvider onCancel={this.handleCancelQueries}>
-        {this.props.children({
-          tables,
-          files,
-          loading,
-          error,
-          duration,
-          isInitialFetch: fetchCount === 1,
-        })}
-      </CancelationProvider>
-    )
+    return this.props.children({
+      tables,
+      files,
+      loading,
+      error,
+      duration,
+      isInitialFetch: fetchCount === 1,
+      onCancel: this.handleCancelQueries,
+    })
   }
 
   private get queries(): URLQuery[] {

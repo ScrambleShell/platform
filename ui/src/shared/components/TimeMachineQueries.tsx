@@ -26,7 +26,6 @@ import {
   getActiveTimeMachine,
   getActiveQuery,
 } from 'src/shared/selectors/timeMachines'
-import {withCancelation, CancelationProps} from 'src/utils/cancelation'
 
 // Styles
 import 'src/shared/components/TimeMachineQueries.scss'
@@ -55,10 +54,10 @@ interface OwnProps {
   queriesState: QueriesState
 }
 
-type Props = StateProps & DispatchProps & OwnProps & CancelationProps
+type Props = StateProps & DispatchProps & OwnProps
 
 const TimeMachineQueries: SFC<Props> = props => {
-  const {activeQuery, queriesState, draftQueries, onAddQuery, onCancel} = props
+  const {activeQuery, queriesState, draftQueries, onAddQuery} = props
 
   let queryEditor
 
@@ -101,7 +100,7 @@ const TimeMachineQueries: SFC<Props> = props => {
             <Button
               text="Cancel"
               size={ComponentSize.Small}
-              onClick={onCancel}
+              onClick={queriesState.onCancel}
               color={ComponentColor.Danger}
             />
           )}
@@ -126,4 +125,4 @@ const mdtp = {
 export default connect<StateProps, DispatchProps, OwnProps>(
   mstp,
   mdtp
-)(withCancelation(TimeMachineQueries))
+)(TimeMachineQueries)
