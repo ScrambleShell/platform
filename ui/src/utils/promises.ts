@@ -4,20 +4,19 @@ export const makeCancelable = <T>(
   promise: Promise<T>
 ): WrappedCancelablePromise<T> => {
   let isCanceled = false
+  let cancel = null
 
   const wrappedPromise = new Promise<T>(async (resolve, reject) => {
+    cancel = reject
+
     try {
       const value = await promise
 
-      if (isCanceled) {
-        reject({isCanceled})
-      } else {
+      if (!isCanceled) {
         resolve(value)
       }
     } catch (error) {
-      if (isCanceled) {
-        reject({isCanceled})
-      } else {
+      if (!isCanceled) {
         reject(error)
       }
     }
@@ -27,6 +26,7 @@ export const makeCancelable = <T>(
     promise: wrappedPromise,
     cancel() {
       isCanceled = true
+      cancel({isCanceled})
     },
   }
 }
