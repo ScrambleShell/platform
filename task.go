@@ -149,12 +149,13 @@ func (t *TaskUpdate) UpdateFlux(oldFlux string) error {
 	if t.Flux != nil {
 		return nil
 	}
-	parsed := parser.ParseSource(oldFlux)
-	if ast.Check(parsed) > 0 {
-		return ast.GetError(parsed)
+	parsedPKG := parser.ParseSource(oldFlux)
+	if ast.Check(parsedPKG) > 0 {
+		return ast.GetError(parsedPKG)
 	}
+	parsed := parsedPKG.Files[0] //TODO: remove this line when flux 0.14 is upgraded into platform
 	if t.Every != 0 && t.Cron != "" {
-		return errors.New("Cannot specify both every and cron")
+		return errors.New("cannot specify both every and cron")
 	}
 	// so we don't allocate if we are just changing the status
 	if t.Name != "" || t.Every != 0 || t.Cron != "" || t.Offset != 0 {

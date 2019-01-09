@@ -7,9 +7,6 @@ import (
 	"time"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/influxdata/flux"
-	"github.com/influxdata/flux/ast"
-	"github.com/influxdata/flux/parser"
 	_ "github.com/influxdata/platform/query/builtin"
 	"github.com/influxdata/platform/task/options"
 )
@@ -44,41 +41,6 @@ func scriptGenerator(opt options.Options, body string) string {
 }
 
 %s`, taskData, body)
-}
-
-func TestParse(t *testing.T) {
-	script := `
-	// fake comment
-	option task = {cron:"* * * * *", name: "foo"}
-            
-	from(bucket: "x")
-		|> range(start: -1h)`
-
-	parsed := parser.ParseSource(script)
-	script2 := ast.Format(parsed)
-	t.Log(script2)
-
-	inter := flux.NewInterpreter()
-	if err := flux.Eval(inter, script2); err != nil {
-		t.FailNow()
-	}
-
-	// pull options from interpreter
-	task := inter.Option("task")
-	if task == nil {
-		t.FailNow()
-	}
-	optObject := task.Object()
-	_, ok := optObject.Get("name")
-	if !ok {
-		t.FailNow()
-	}
-
-	_, cronOK := optObject.Get("cron")
-	_, everyOK := optObject.Get("every")
-	if cronOK && everyOK {
-		t.FailNow()
-	}
 }
 
 func TestFromScript(t *testing.T) {

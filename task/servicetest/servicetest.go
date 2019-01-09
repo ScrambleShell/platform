@@ -826,7 +826,6 @@ const (
 }
 
 from(bucket: "b")
-	|> range(start:0)
 	|> toHTTP(url: "http://example.com")`
 
 	scriptDifferentName = `option task = {
@@ -837,7 +836,6 @@ from(bucket: "b")
 }
 
 from(bucket: "b")
-	|> range(start:0)
 	|> toHTTP(url: "http://example.com")`
 )
 
