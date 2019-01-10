@@ -64,8 +64,8 @@ func (s *inmem) CreateTask(_ context.Context, req CreateTaskRequest) (platform.I
 }
 
 func (s *inmem) UpdateTask(_ context.Context, req UpdateTaskRequest) (UpdateTaskResult, error) {
-	op, err := StoreValidator.UpdateArgs(req)
 	var res UpdateTaskResult
+	op, err := StoreValidator.UpdateArgs(req)
 	if err != nil {
 		return res, err
 	}

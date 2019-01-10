@@ -177,7 +177,7 @@ type UpdateTaskRequest struct {
 	// If empty, do not modify the existing status.
 	Status TaskStatus
 
-	// These options are for editing options via request zeroed options will be ignored.
+	// These options are for editing options via request.  Zeroed options will be ignored.
 	options.Options
 }
 
@@ -198,18 +198,22 @@ func (t *UpdateTaskRequest) UpdateFlux(oldFlux string) error {
 	}
 	if t.Name != "" || !t.IsZero() {
 		op := make(map[string]values.Value, 5)
-		switch {
-		case t.Name != "":
+		if t.Name != "" {
 			op["name"] = values.NewString(t.Name)
-		case t.Every != 0:
+		}
+		if t.Every != 0 {
 			op["every"] = values.NewDuration(values.Duration(t.Every))
-		case t.Cron != "":
+		}
+		if t.Cron != "" {
 			op["cron"] = values.NewString(t.Cron)
-		case t.Offset != 0:
+		}
+		if t.Offset != 0 {
 			op["offset"] = values.NewDuration(values.Duration(t.Offset))
-		case t.Concurrency != 0:
+		}
+		if t.Concurrency != 0 {
 			op["concurrency"] = values.NewInt(t.Concurrency)
-		case t.Retry != 0:
+		}
+		if t.Retry != 0 {
 			op["retry"] = values.NewInt(t.Retry)
 		}
 		ok, err := edit.Option(parsed, "task", edit.OptionObjectFn(op))
@@ -219,7 +223,7 @@ func (t *UpdateTaskRequest) UpdateFlux(oldFlux string) error {
 		if !ok {
 			return errors.New("unable to edit option")
 		}
-		t.Options.Zero()
+		t.Options.Clear()
 		t.Script = ast.Format(parsed)
 		return nil
 	}
@@ -448,7 +452,7 @@ func (StoreValidation) UpdateArgs(req UpdateTaskRequest) (options.Options, error
 			return o, err
 		}
 		fmt.Println("options", req.Options)
-		req.Zero()
+		req.Clear()
 		o, err = options.FromScript(req.Script)
 		fmt.Println("updateargs:", req.Script)
 		if err != nil {

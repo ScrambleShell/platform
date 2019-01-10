@@ -231,7 +231,7 @@ func testTaskCRUD(t *testing.T, sys *System) {
 		t.Fatalf("flux unexpected updated: %s", diff)
 	}
 	if f.Status != newStatus {
-		t.Fatalf("expected task status to be inactive, got %q", f.Status)
+		t.Fatalf("expected task status to be active, got %q", f.Status)
 	}
 
 	// Delete task.

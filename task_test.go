@@ -36,12 +36,12 @@ func TestOptionsMarshal(t *testing.T) {
 
 func TestOptionsEdit(t *testing.T) {
 	tu := &platform.TaskUpdate{}
-	tu.Every = 10 * time.Second
+	tu.Options.Every = 10 * time.Second
 	if err := tu.UpdateFlux(`option task = {every: 20s, name: "foo"} from(bucket:"x") |> range(start:-1h)`); err != nil {
 		t.Fatal(err)
 	}
 	t.Run("test zeroing", func(t *testing.T) {
-		if tu.Every != 0 {
+		if tu.Options.Every != 0 {
 			t.Errorf("expected Every to be zeroed but it wasn't")
 		}
 	})
@@ -55,9 +55,7 @@ from(bucket:"x")
 		}
 	})
 	t.Run("test replacement", func(t *testing.T) {
-		//t.Skip("bug in formatter can't read flux's autoformatted flux code")
 		op, err := options.FromScript(*tu.Flux)
-		t.Log(*tu.Flux)
 		if err != nil {
 			t.Error(err)
 		}

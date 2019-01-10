@@ -49,7 +49,8 @@ type Options struct {
 	Retry int64 `json:"retry,omitempty"`
 }
 
-func (o *Options) Zero() {
+// Clear clears out all options in the options struct, it us useful if you wish to reuse it.
+func (o *Options) Clear() {
 	o.Name = ""
 	o.Cron = ""
 	o.Every = 0
@@ -83,7 +84,6 @@ func FromScript(script string) (Options, error) {
 
 	// pull options from interpreter
 	task := inter.Option("task")
-	fmt.Println(task)
 	if task == nil {
 		return opt, errors.New("task not defined")
 	}

@@ -105,7 +105,6 @@ func (p pAdapter) UpdateTask(ctx context.Context, id platform.ID, upd platform.T
 	if err := upd.Validate(); err != nil {
 		return nil, err
 	}
-	//fmt.Println("upd.Name0", upd.Options.Name)
 	req := backend.UpdateTaskRequest{ID: id}
 	if upd.Flux != nil {
 		req.Script = *upd.Flux

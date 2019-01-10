@@ -86,17 +86,57 @@ type TaskService interface {
 	ForceRun(ctx context.Context, taskID ID, scheduledFor int64) (*Run, error)
 }
 
-// TaskUpdate represents updates to a task
+// TaskUpdate represents updates to a task. Options updates override any options set in the Flux field.
 type TaskUpdate struct {
 	Flux   *string `json:"flux,omitempty"`
 	Status *string `json:"status,omitempty"`
-	options.Options
+	// Options gets unmarshalled from json as if it was flat, with the same level as Flux and Status.
+	Options options.Options // when we unmarshal this gets unmarshalled from flat key-values
 }
 
 func (t *TaskUpdate) UnmarshalJSON(data []byte) error {
 	// this is a type so we can marshal string into durations nicely
-	type TempOptions struct {
-		Name string `json:"options,omitempty"`
+	jo := struct {
+		Flux   *string `json:"flux,omitempty"`
+		Status *string `json:"status,omitempty"`
+		Name   string  `json:"options,omitempty"`
+
+		// Cron is a cron style time schedule that can be used in place of Every.
+		Cron string `json:"cron,omitempty"`
+
+		// Every represents a fixed period to repeat execution.
+		// It gets marshalled from a string duration, i.e.: "10s" is 10 seconds
+		Every flux.Duration `json:"every,omitempty"`
+
+		// Offset represents a delay before execution.
+		// It gets marshalled from a string duration, i.e.: "10s" is 10 seconds
+		Offset flux.Duration `json:"offset,omitempty"`
+
+		Concurrency int64 `json:"concurrency,omitempty"`
+
+		Retry int64 `json:"retry,omitempty"`
+	}{}
+
+	if err := json.Unmarshal(data, &jo); err != nil {
+		return err
+	}
+	t.Options.Name = jo.Name
+	t.Options.Cron = jo.Cron
+	t.Options.Every = time.Duration(jo.Every)
+	t.Options.Offset = time.Duration(jo.Offset)
+	t.Options.Concurrency = jo.Concurrency
+	t.Options.Retry = jo.Retry
+	t.Flux = jo.Flux
+	t.Status = jo.Status
+
+	return nil
+}
+
+func (t TaskUpdate) MarshalJSON() ([]byte, error) {
+	jo := struct {
+		Flux   *string `json:"flux,omitempty"`
+		Status *string `json:"status,omitempty"`
+		Name   string  `json:"options,omitempty"`
 
 		// Cron is a cron style time schedule that can be used in place of Every.
 		Cron string `json:"cron,omitempty"`
@@ -110,32 +150,21 @@ func (t *TaskUpdate) UnmarshalJSON(data []byte) error {
 		Concurrency int64 `json:"concurrency,omitempty"`
 
 		Retry int64 `json:"retry,omitempty"`
-	}
-
-	jo := struct {
-		Flux   *string `json:"flux,omitempty"`
-		Status *string `json:"status,omitempty"`
-		TempOptions
 	}{}
-
-	if err := json.Unmarshal(data, &jo); err != nil {
-		return err
-	}
-	t.Name = jo.Name
-	t.Cron = jo.Cron
-	t.Every = time.Duration(jo.Every)
-	t.Offset = time.Duration(jo.Offset)
-	t.Concurrency = jo.Concurrency
-	t.Retry = jo.Retry
-	t.Flux = jo.Flux
-	t.Status = jo.Status
-
-	return nil
+	jo.Name = t.Options.Name
+	jo.Cron = t.Options.Cron
+	jo.Every = flux.Duration(t.Options.Every)
+	jo.Offset = flux.Duration(t.Options.Offset)
+	jo.Concurrency = t.Options.Concurrency
+	jo.Retry = t.Options.Retry
+	jo.Flux = t.Flux
+	jo.Status = t.Status
+	return json.Marshal(jo)
 }
 
 func (t TaskUpdate) Validate() error {
 	switch {
-	case t.Every != 0 && t.Cron != "":
+	case t.Options.Every != 0 && t.Options.Cron != "":
 		return errors.New("cannot specify both every and cron")
 	case t.Flux == nil && t.Status == nil && t.Options.IsZero():
 		return errors.New("cannot update task without content")
@@ -154,22 +183,24 @@ func (t *TaskUpdate) UpdateFlux(oldFlux string) error {
 		return ast.GetError(parsedPKG)
 	}
 	parsed := parsedPKG.Files[0] //TODO: remove this line when flux 0.14 is upgraded into platform
-	if t.Every != 0 && t.Cron != "" {
+	if t.Options.Every != 0 && t.Options.Cron != "" {
 		return errors.New("cannot specify both every and cron")
 	}
 	// so we don't allocate if we are just changing the status
-	if t.Name != "" || t.Every != 0 || t.Cron != "" || t.Offset != 0 {
+	if t.Options.Name != "" || t.Options.Every != 0 || t.Options.Cron != "" || t.Options.Offset != 0 {
 		op := make(map[string]values.Value, 4)
 
-		switch {
-		case t.Name != "":
-			op["name"] = values.NewString(t.Name)
-		case t.Every != 0:
-			op["every"] = values.NewDuration(values.Duration(t.Every))
-		case t.Cron != "":
-			op["cron"] = values.NewString(t.Cron)
-		case t.Offset != 0:
-			op["offset"] = values.NewDuration(values.Duration(t.Offset))
+		if t.Options.Name != "" {
+			op["name"] = values.NewString(t.Options.Name)
+		}
+		if t.Options.Every != 0 {
+			op["every"] = values.NewDuration(values.Duration(t.Options.Every))
+		}
+		if t.Options.Cron != "" {
+			op["cron"] = values.NewString(t.Options.Cron)
+		}
+		if t.Options.Offset != 0 {
+			op["offset"] = values.NewDuration(values.Duration(t.Options.Offset))
 		}
 		ok, err := edit.Option(parsed, "task", edit.OptionObjectFn(op))
 		if err != nil {
@@ -178,7 +209,7 @@ func (t *TaskUpdate) UpdateFlux(oldFlux string) error {
 		if !ok {
 			return errors.New("unable to edit option")
 		}
-		t.Options.Zero()
+		t.Options.Clear()
 		s := ast.Format(parsed)
 		t.Flux = &s
 		return nil
